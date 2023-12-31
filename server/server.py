@@ -2,10 +2,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from joblib import load
 import string
-import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 app = Flask(__name__, static_folder="./build", static_url_path="/")
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
