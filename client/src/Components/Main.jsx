@@ -5,6 +5,7 @@ import axios from "axios";
 export default function Main() {
   const [text, setText] = useState("");
   const [chats, setChats] = useState([]);
+  const [history, setHistory] = useState("");
   const textareaRef = useRef(null);
 
   const handlePrompts = (e) => {
@@ -17,8 +18,8 @@ export default function Main() {
       axios
         .post("http://127.0.0.1:5000/predict", { data: e.target.value })
         .then((response) => {
-          console.log(JSON.parse(response.config.data)["data"]); // Handle the response
           // setResponses([...responses, response.data]);
+          setHistory(response.config.data);
           setChats([
             ...chats,
             {
@@ -46,32 +47,39 @@ export default function Main() {
     textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
   };
 
+  console.log(chats.length);
+
   return (
     <div className="main-container">
       <div className="header">Healio</div>
       <div className="conversation-container">
         <div className="prompts">
-          {chats.map((chat) => {
-            return chats.length > 0 ? (
-              <div className="chat-container">
-                <div className="prompt-container">
-                  <div className="prompt-title">You</div>
-                  <div className="prompt">{chat.prompt}</div>
-                </div>
-                <div className="prompt-container">
-                  <div className="prompt-title">Healio</div>
-                  <div className="prompt">
-                    It is likely for you to have{" "}
-                    <span style={{ fontWeight: "800" }}>{chat.response}</span>.
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="home-screen">
+          {chats.length === 0 ? (
+            <div className="home-screen">
+              <div className="descriptopm">
                 Start by typing symptoms you are experiencing.
               </div>
-            );
-          })}
+            </div>
+          ) : (
+            chats.map((chat) => {
+              return (
+                <div className="chat-container">
+                  <div className="prompt-container">
+                    <div className="prompt-title">You</div>
+                    <div className="prompt">{chat.prompt}</div>
+                  </div>
+                  <div className="prompt-container">
+                    <div className="prompt-title">Healio</div>
+                    <div className="prompt">
+                      It is likely for you to have{" "}
+                      <span style={{ fontWeight: "800" }}>{chat.response}</span>
+                      .
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
       <div className="user-prompt-container">

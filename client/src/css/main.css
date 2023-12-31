@@ -28,10 +28,22 @@
   gap: 20px;
 }
 
+.main-container .conversation-container .prompts {
+  height: inherit;
+}
+
+.main-container .conversation-container .home-screen {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .main-container .chat-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .main-container .prompt-container .prompt {
