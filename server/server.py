@@ -5,7 +5,7 @@ import string
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
-app = Flask(__name__, static_folder="./build", static_url_path="/")
+app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 model = load("./model/healioBot.pkl")

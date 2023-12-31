@@ -15,7 +15,7 @@ export default function Main() {
       textareaRef.current.style.height = "33px";
 
       axios
-        .post("/predict", { data: e.target.value })
+        .post("http://127.0.0.1:5000/predict", { data: e.target.value })
         .then((response) => {
           console.log(JSON.parse(response.config.data)["data"]); // Handle the response
           // setResponses([...responses, response.data]);
