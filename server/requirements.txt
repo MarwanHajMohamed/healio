@@ -2,4 +2,4 @@ flask
 flask_cors
 nltk
 joblib
-gunicorn
+gunicorn==19.7.1
