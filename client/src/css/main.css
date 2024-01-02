@@ -57,6 +57,10 @@
   color: white;
 }
 
+.main-container .prompt-container .prompt-title.healio {
+  color: rgb(151, 151, 170);
+}
+
 .main-container .user-prompt-container {
   padding-bottom: 20px;
   width: 100%;
@@ -92,4 +96,14 @@
 
 .main-container .user-prompt-container .prompt-bar textarea:focus {
   border: 1px solid rgb(255, 255, 255, 1);
+}
+
+#blinker {
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import "../css/main.css";
 import axios from "axios";
 
@@ -7,6 +7,16 @@ export default function Main() {
   const [chats, setChats] = useState([]);
   const [history, setHistory] = useState("");
   const textareaRef = useRef(null);
+  const ref = useRef(HTMLDivElement);
+
+  useEffect(() => {
+    if (chats.length) {
+      ref.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }
+  }, [chats.length]);
 
   const handlePrompts = (e) => {
     e.preventDefault();
@@ -18,8 +28,7 @@ export default function Main() {
       axios
         .post("http://127.0.0.1:5000/predict", { data: e.target.value })
         .then((response) => {
-          // setResponses([...responses, response.data]);
-          setHistory(response.config.data);
+          setHistory(response.data);
           setChats([
             ...chats,
             {
@@ -27,6 +36,7 @@ export default function Main() {
               response: response.data,
             },
           ]);
+          // typeWriter();
         })
         .catch((error) => {
           console.error(error.response.data);
@@ -47,7 +57,22 @@ export default function Main() {
     textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
   };
 
-  console.log(chats.length);
+  let textPosition = 0;
+  let speed = 40;
+
+  const res = [history];
+
+  const typeWriter = () => {
+    document.getElementById("prompt").innerHTML =
+      res[0].substring(0, textPosition) + "<span id='blinker'>\u25ae</span>";
+    if (textPosition++ < res[0].length) {
+      setTimeout(typeWriter, speed);
+    } else {
+      setTimeout(() => {
+        document.getElementById("blinker").remove();
+      }, 3000);
+    }
+  };
 
   return (
     <div className="main-container">
@@ -63,14 +88,14 @@ export default function Main() {
           ) : (
             chats.map((chat) => {
               return (
-                <div className="chat-container">
+                <div className="chat-container" ref={ref}>
                   <div className="prompt-container">
                     <div className="prompt-title">You</div>
                     <div className="prompt">{chat.prompt}</div>
                   </div>
                   <div className="prompt-container">
-                    <div className="prompt-title">Healio</div>
-                    <div className="prompt">
+                    <div className="prompt-title healio">Healio</div>
+                    <div className="prompt" id="prompt">
                       It is likely for you to have{" "}
                       <span style={{ fontWeight: "800" }}>{chat.response}</span>
                       .
