@@ -5,7 +5,6 @@ import axios from "axios";
 export default function Main() {
   const [text, setText] = useState("");
   const [chats, setChats] = useState([]);
-  const [history, setHistory] = useState("");
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
 
@@ -28,7 +27,6 @@ export default function Main() {
       axios
         .post("http://127.0.0.1:5000/predict", { data: e.target.value })
         .then((response) => {
-          setHistory(response.data);
           setChats([
             ...chats,
             {

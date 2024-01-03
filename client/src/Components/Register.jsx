@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Logo from "../css/assets/Healio Logo.png";
-import doctor from "../css/assets/doctor.png";
 import doctor2 from "../css/assets/doctor2.png";
 import "../css/register.css";
 import axios from "axios";
@@ -15,31 +14,47 @@ export default function Register() {
 
   const navigate = useNavigate();
 
-  const handleEmailTaken = () => {
-    axios.get("http://localhost:8080/user").then((res) => {
-      res.data.forEach((user) => {
-        if (email === user.email) {
-          return false;
-        }
-      });
-    });
-  };
-
   const handleRegister = (e) => {
     e.preventDefault();
+
     if (firstname === "" || surname === "" || email === "" || password === "") {
       setError("Fill out all the fields to continue.");
-    } else if (handleEmailTaken === false) {
-      setError("Email is already taken. Try logging in.");
-    } else {
-      axios.post("http://localhost:8080/user", {
-        first_name: firstname,
-        surname: surname,
-        email: email,
-        password: password,
-      });
-      navigate("/main");
+      return;
     }
+
+    if (password.length < 8) {
+      setError("Password must contain at least 8 characters.");
+      return;
+    }
+
+    axios
+      .get("http://localhost:8080/user")
+      .then((res) => {
+        let emailIsTaken = res.data.some((user) => email === user.email);
+
+        if (emailIsTaken) {
+          setError("Email is already taken. Try logging in.");
+        } else {
+          axios
+            .post("http://localhost:8080/user", {
+              first_name: firstname,
+              surname: surname,
+              email: email,
+              password: password,
+            })
+            .then(() => {
+              navigate("/main");
+            })
+            .catch((error) => {
+              console.error("Registration error:", error);
+              setError("Registration failed. Please try again.");
+            });
+        }
+      })
+      .catch((error) => {
+        console.error("Email check error:", error);
+        setError("An error occurred. Please try again.");
+      });
   };
 
   return (
