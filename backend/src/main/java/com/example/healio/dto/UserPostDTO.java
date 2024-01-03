@@ -7,8 +7,9 @@ public class UserPostDTO {
     String email;
     String password;
 
-    public UserPostDTO(String first_name, String surname, String email, String password) {
+    public UserPostDTO(int id, String first_name, String surname, String email, String password) {
         super();
+        this.id = id;
         this.first_name = first_name;
         this.surname = surname;
         this.email = email;

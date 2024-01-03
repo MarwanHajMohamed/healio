@@ -40,6 +40,7 @@ public class User implements Serializable {
     public User(String first_name, String surname, String email, String password) {
         super();
         this.first_name = first_name;
+        this.surname = surname;
         this.email = email;
         this.password = password;
     }
