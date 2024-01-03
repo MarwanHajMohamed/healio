@@ -5,7 +5,7 @@ import "../css/login.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-export default function Register() {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("error");
@@ -20,15 +20,24 @@ export default function Register() {
       return;
     }
 
-    axios
-      .get("http://localhost:8080/user")
-      .then((res) => {
-        let login = res.data.some(
-          (user) => email === user.email && password == user.password
-        );
+    const dataLogin = {
+      email: email,
+      password: password,
+    };
 
-        if (login) {
-          console.log(res.data);
+    axios
+      .post("http://localhost:8080/login", dataLogin)
+      .then((res) => {
+        console.log(res);
+
+        if (res.status === 200) {
+          const jwtToken = res.headers.authorization.split(" ")[1];
+          if (jwtToken !== null) {
+            sessionStorage.setItem("jwt", jwtToken);
+            console.log(jwtToken);
+          } else {
+            alert("Token failure!");
+          }
           navigate("/main");
         } else {
           setError("Incorrect email or password.");

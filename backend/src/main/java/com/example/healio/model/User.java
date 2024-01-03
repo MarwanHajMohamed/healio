@@ -2,13 +2,13 @@ package com.example.healio.model;
 
 import java.io.Serializable;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.Table;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotBlank;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.Table;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.validation.constraints.NotBlank;
 
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
