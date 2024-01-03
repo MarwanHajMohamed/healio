@@ -100,8 +100,9 @@ export default function Register() {
             />
           </div>
           <div className="bottom-container">
-            <div className="login">Login</div>
-            <div className="reset-pass">Reset password</div>
+            <div className="login" onClick={() => navigate("/login")}>
+              Login
+            </div>
           </div>
           <div className="button-container">
             <button type="submit" onClick={handleRegister}>
