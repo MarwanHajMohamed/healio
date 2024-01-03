@@ -36,7 +36,6 @@ export default function Main() {
               response: response.data,
             },
           ]);
-          // typeWriter();
         })
         .catch((error) => {
           console.error(error.response.data);
@@ -55,23 +54,6 @@ export default function Main() {
     setText(e.target.value);
     textareaRef.current.style.height = "inherit";
     textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-  };
-
-  let textPosition = 0;
-  let speed = 40;
-
-  const res = [history];
-
-  const typeWriter = () => {
-    document.getElementById("prompt").innerHTML =
-      res[0].substring(0, textPosition) + "<span id='blinker'>\u25ae</span>";
-    if (textPosition++ < res[0].length) {
-      setTimeout(typeWriter, speed);
-    } else {
-      setTimeout(() => {
-        document.getElementById("blinker").remove();
-      }, 3000);
-    }
   };
 
   return (

@@ -32,11 +32,6 @@ def make_pred(model, text):
     return disease[0]
 
 
-@app.route("/")
-def home():
-    return {"message": "Hello from backend 2"}
-
-
 @app.route("/predict", methods=["POST"])
 def predict():
     data = request.get_json()

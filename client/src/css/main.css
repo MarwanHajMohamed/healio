@@ -57,10 +57,6 @@
   color: white;
 }
 
-.main-container .prompt-container .prompt-title.healio {
-  color: rgb(151, 151, 170);
-}
-
 .main-container .user-prompt-container {
   padding-bottom: 20px;
   width: 100%;
@@ -77,16 +73,14 @@
 }
 
 .main-container .user-prompt-container .prompt-bar textarea {
-  background-color: transparent;
+  background-color: white;
   width: 100%;
-  border: 1px solid rgb(255, 255, 255, 0.4);
-  border-radius: 15px;
+  border-radius: 10px;
   height: 33px;
   outline: 0;
   padding: 10px 15px 0;
   font-size: 20px;
-  color: white;
-  transition: 50ms ease-in-out;
+  transition: 100ms ease-in-out;
   display: block;
   max-height: 200px;
   overflow-y: scroll;
@@ -94,8 +88,8 @@
   resize: none;
 }
 
-.main-container .user-prompt-container .prompt-bar textarea:focus {
-  border: 1px solid rgb(255, 255, 255, 1);
+.main-container .user-prompt-container .prompt-bar textarea::placeholder {
+  color: rgb(181, 179, 179);
 }
 
 #blinker {
