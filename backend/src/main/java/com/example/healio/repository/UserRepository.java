@@ -1,13 +1,13 @@
 package com.example.healio.repository;
 
-import org.springframework.data.repository.CrudRepository;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.healio.model.User;
 
-public interface UserRepository extends CrudRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    User findByUserID(int userID);
-
-    User findByEmail(String email);
+    Optional<User> findByEmail(String email);
 
 }

@@ -2,93 +2,33 @@ package com.example.healio.model;
 
 import java.io.Serializable;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.Table;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.validation.constraints.NotBlank;
+import org.hibernate.annotations.NaturalId;
 
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
-@Table(name = "user_info")
-@EntityListeners(AuditingEntityListener.class)
+@NoArgsConstructor
+@AllArgsConstructor
 public class User implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    int userID;
-
-    @NotBlank
-    String first_name;
-
-    @NotBlank
-    String surname;
-
-    @NotBlank
-    String email;
-
-    @NotBlank
-    String password;
-
-    public User() {
-
-    }
-
-    public User(String first_name, String surname, String email, String password) {
-        super();
-        this.first_name = first_name;
-        this.surname = surname;
-        this.email = email;
-        this.password = password;
-    }
-
-    public int getUserID() {
-        return userID;
-    }
-
-    public void setUserID(int userID) {
-        this.userID = userID;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getFirstName() {
-        return first_name;
-    }
-
-    public void setFirstName(String first_name) {
-        this.first_name = first_name;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    @Override
-    public String toString() {
-        return "User [userID=" + userID + ", first name=" + first_name + ", surname=" + surname + ", email=" + email
-                + ", password=" + password + "]";
-    }
+    private Long userID;
+    private String first_name;
+    private String surname;
+    @NaturalId(mutable = true)
+    private String email;
+    private String password;
+    private String role;
+    private boolean isEnabled = false;
 
 }

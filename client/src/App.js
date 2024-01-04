@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Main from "./Components/Main";
 import Register from "./Components/Register";
 import Login from "./Components/Login";
+import VerifyEmail from "./Components/VerifyEmail";
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
         <Route path="/main" element={<Main />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/verify_email" element={<VerifyEmail />} />
       </Routes>
     </BrowserRouter>
   );

@@ -34,18 +34,17 @@ export default function Login() {
           const jwtToken = res.headers.authorization.split(" ")[1];
           if (jwtToken !== null) {
             sessionStorage.setItem("jwt", jwtToken);
-            console.log(jwtToken);
           } else {
             alert("Token failure!");
           }
-          navigate("/main");
+          navigate("/login");
         } else {
           setError("Incorrect email or password.");
         }
       })
       .catch((error) => {
         console.error("Email check error:", error);
-        setError("An error occurred. Please try again.");
+        setError("Incorrect email or password.");
       });
   };
 

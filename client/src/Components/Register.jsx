@@ -28,32 +28,24 @@ export default function Register() {
     }
 
     axios
-      .get("http://localhost:8080/user")
+      .post("http://localhost:8080/register", {
+        first_name: firstname,
+        surname: surname,
+        email: email,
+        password: password,
+        role: "USER",
+      })
       .then((res) => {
-        let emailIsTaken = res.data.some((user) => email === user.email);
-
-        if (emailIsTaken) {
-          setError("Email is already taken. Try logging in.");
-        } else {
-          axios
-            .post("http://localhost:8080/user", {
-              first_name: firstname,
-              surname: surname,
-              email: email,
-              password: password,
-            })
-            .then(() => {
-              navigate("/main");
-            })
-            .catch((error) => {
-              console.error("Registration error:", error);
-              setError("Registration failed. Please try again.");
-            });
+        if (res.data.message === "verify email") {
+          navigate("/verify_email");
+          return;
         }
+        console.log(res);
+        navigate("/main");
       })
       .catch((error) => {
-        console.error("Email check error:", error);
-        setError("An error occurred. Please try again.");
+        console.log(error);
+        setError(error.response.data);
       });
   };
 
