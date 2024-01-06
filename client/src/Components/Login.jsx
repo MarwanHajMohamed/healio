@@ -31,13 +31,7 @@ export default function Login() {
         console.log(res);
 
         if (res.status === 200) {
-          const jwtToken = res.headers.authorization.split(" ")[1];
-          if (jwtToken !== null) {
-            sessionStorage.setItem("jwt", jwtToken);
-          } else {
-            alert("Token failure!");
-          }
-          navigate("/login");
+          navigate("/main");
         } else {
           setError("Incorrect email or password.");
         }

@@ -2,6 +2,8 @@ package com.example.healio.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -29,14 +31,35 @@ public class UserRegistrattionSecurityConfig implements WebMvcConfigurer {
                 .authorizeHttpRequests()
                 .requestMatchers("/register/**")
                 .permitAll()
-                .and()
-                .authorizeHttpRequests()
-                .requestMatchers("/users/**")
-                .hasAnyAuthority("USER", "ADMIN")
+                .requestMatchers("/login")
+                .permitAll() // Allow unauthenticated access to login
+                .anyRequest()
+                .authenticated() // Secure other endpoints
                 .and()
                 .formLogin()
-                .and()
+                .disable() // Disable default form login
                 .build();
+    }
+    //
+    //
+    // .and()
+    // .csrf()
+    // .disable()
+    // .authorizeHttpRequests()
+    // .requestMatchers("/register/**")
+    // .permitAll()
+    // .and()
+    // .authorizeHttpRequests()
+    // .requestMatchers("/users/**")
+    // .hasAnyAuthority("USER", "ADMIN")
+    // .and()
+    // .formLogin()
+    //
+    //
+
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class).build();
     }
 
     @Override
