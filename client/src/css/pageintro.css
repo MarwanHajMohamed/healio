@@ -1,0 +1,43 @@
+.pageintro-wrapper {
+  height: 100vh;
+}
+
+.pageintro-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100%;
+}
+
+.pageintro-container .left-side {
+  background-color: white;
+  height: 100%;
+  color: var(--green);
+}
+
+.pageintro-container .left-side {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 30px;
+  gap: 20px;
+}
+
+.pageintro-container .left-side .title {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.pageintro-container .left-side .description {
+  font-size: 36px;
+  font-weight: 400;
+}
+
+.pageintro-container .left-side .view-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.pageintro-container .left-side .view-container i {
+  padding: 0 30px;
+}

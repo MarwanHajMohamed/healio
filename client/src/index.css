@@ -5,6 +5,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: linear-gradient(180deg, #292929 0%, #1a361a 100%);
   color: white;
+  --green: #1a361a;
 }
 
 code {

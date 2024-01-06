@@ -11,18 +11,18 @@
   align-items: center;
 }
 
-.left-side .logo-container {
+.register-page-container .left-side .logo-container {
   display: flex;
   align-items: center;
   gap: 15px;
   margin-bottom: 30px;
 }
 
-.logo-container img {
+.register-page-container .logo-container img {
   width: 60px;
 }
 
-.logo-container .title {
+.register-page-container .logo-container .title {
   font-size: 35px;
   font-weight: 700;
   letter-spacing: 1px;

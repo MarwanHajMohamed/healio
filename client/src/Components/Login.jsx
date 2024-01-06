@@ -31,6 +31,7 @@ export default function Login() {
         console.log(res);
 
         if (res.status === 200) {
+          localStorage.setItem("token", res.data);
           navigate("/main");
         } else {
           setError("Incorrect email or password.");
