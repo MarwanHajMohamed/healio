@@ -32,30 +32,14 @@ public class UserRegistrattionSecurityConfig implements WebMvcConfigurer {
                 .requestMatchers("/register/**")
                 .permitAll()
                 .requestMatchers("/login")
-                .permitAll() // Allow unauthenticated access to login
+                .permitAll()
                 .anyRequest()
-                .authenticated() // Secure other endpoints
+                .authenticated()
                 .and()
                 .formLogin()
-                .disable() // Disable default form login
+                .disable()
                 .build();
     }
-    //
-    //
-    // .and()
-    // .csrf()
-    // .disable()
-    // .authorizeHttpRequests()
-    // .requestMatchers("/register/**")
-    // .permitAll()
-    // .and()
-    // .authorizeHttpRequests()
-    // .requestMatchers("/users/**")
-    // .hasAnyAuthority("USER", "ADMIN")
-    // .and()
-    // .formLogin()
-    //
-    //
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
