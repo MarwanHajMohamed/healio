@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import "../css/main.css";
 import axios from "axios";
+import Sidebar from "./Sidebar";
 
 export default function Main() {
   const [text, setText] = useState("");
@@ -55,50 +56,54 @@ export default function Main() {
   };
 
   return (
-    <div className="main-container">
-      <div className="header">Healio</div>
-      <div className="conversation-container">
-        <div className="prompts">
-          {chats.length === 0 ? (
-            <div className="home-screen">
-              <div className="descriptopm">
-                Start by typing symptoms you are experiencing.
+    <>
+      <Sidebar />
+      <div className="main-container">
+        <div className="conversation-container">
+          <div className="prompts">
+            {chats.length === 0 ? (
+              <div className="home-screen">
+                <div className="descriptopm">
+                  Start by typing symptoms you are experiencing.
+                </div>
               </div>
-            </div>
-          ) : (
-            chats.map((chat) => {
-              return (
-                <div className="chat-container" ref={ref}>
-                  <div className="prompt-container">
-                    <div className="prompt-title">You</div>
-                    <div className="prompt">{chat.prompt}</div>
-                  </div>
-                  <div className="prompt-container">
-                    <div className="prompt-title healio">Healio</div>
-                    <div className="prompt" id="prompt">
-                      It is likely for you to have{" "}
-                      <span style={{ fontWeight: "800" }}>{chat.response}</span>
-                      .
+            ) : (
+              chats.map((chat) => {
+                return (
+                  <div className="chat-container" ref={ref}>
+                    <div className="prompt-container">
+                      <div className="prompt-title">You</div>
+                      <div className="prompt">{chat.prompt}</div>
+                    </div>
+                    <div className="prompt-container">
+                      <div className="prompt-title healio">Healio</div>
+                      <div className="prompt" id="prompt">
+                        It is likely for you to have{" "}
+                        <span style={{ fontWeight: "800" }}>
+                          {chat.response}
+                        </span>
+                        .
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })
-          )}
+                );
+              })
+            )}
+          </div>
+        </div>
+        <div className="user-prompt-container">
+          <form className="prompt-bar" onSubmit={handlePrompts}>
+            <textarea
+              rows="1"
+              placeholder="How can I help?"
+              value={text}
+              ref={textareaRef}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+            ></textarea>
+          </form>
         </div>
       </div>
-      <div className="user-prompt-container">
-        <form className="prompt-bar" onSubmit={handlePrompts}>
-          <textarea
-            rows="1"
-            placeholder="How can I help?"
-            value={text}
-            ref={textareaRef}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-          ></textarea>
-        </form>
-      </div>
-    </div>
+    </>
   );
 }
