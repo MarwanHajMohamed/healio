@@ -32,7 +32,8 @@ export default function Login() {
 
         if (res.status === 200) {
           localStorage.setItem("token", res.data);
-          navigate("/main");
+          localStorage.setItem("user", email);
+          navigate("/chat");
         } else {
           setError("Incorrect email or password.");
         }
@@ -54,7 +55,7 @@ export default function Login() {
         </div>
       </div>
       <div className="right-side">
-        <div className="logo-container">
+        <div className="logo-container" onClick={() => navigate("/")}>
           <img src={Logo} alt="" />
           <div className="title">Healio</div>
         </div>

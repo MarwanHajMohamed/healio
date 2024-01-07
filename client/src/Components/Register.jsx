@@ -41,7 +41,7 @@ export default function Register() {
           return;
         }
         console.log(res);
-        navigate("/main");
+        navigate("/chat");
       })
       .catch((error) => {
         console.log(error);
@@ -52,7 +52,7 @@ export default function Register() {
   return (
     <div className="register-page-container">
       <div className="left-side">
-        <div className="logo-container">
+        <div className="logo-container" onClick={() => navigate("/")}>
           <img src={Logo} alt="" />
           <div className="title">Healio</div>
         </div>

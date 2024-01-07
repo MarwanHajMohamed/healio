@@ -5,6 +5,15 @@ import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
   const navigate = useNavigate();
+
+  const handleButton = (loc) => {
+    if (localStorage.getItem("token") === "") {
+      navigate(loc);
+    } else {
+      navigate("/chat");
+    }
+  };
+
   return (
     <div className="navbar-container">
       <div className="left-side">
@@ -14,8 +23,8 @@ export default function Navbar() {
         </div>
       </div>
       <div className="right-side">
-        <button onClick={() => navigate("/register")}>Register</button>
-        <button onClick={() => navigate("/login")}>Login</button>
+        <button onClick={() => handleButton("/register")}>Register</button>
+        <button onClick={() => handleButton("/login")}>Login</button>
       </div>
     </div>
   );

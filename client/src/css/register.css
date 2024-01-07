@@ -16,6 +16,7 @@
   align-items: center;
   gap: 15px;
   margin-bottom: 30px;
+  cursor: pointer;
 }
 
 .register-page-container .logo-container img {
