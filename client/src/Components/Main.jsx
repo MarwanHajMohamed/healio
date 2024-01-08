@@ -70,7 +70,13 @@ export default function Main() {
               </div>
             ) : (
               chats.map((chat) => {
-                return (
+                return chat.response === "" ? (
+                  <div className="home-screen">
+                    <div className="descriptopm">
+                      Start by typing symptoms you are experiencing.
+                    </div>
+                  </div>
+                ) : (
                   <div className="chat-container" ref={ref}>
                     <div className="prompt-container">
                       <div className="prompt-title">You</div>

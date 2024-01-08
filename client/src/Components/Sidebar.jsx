@@ -23,7 +23,8 @@ export default function Sidebar({ setMainChats, setPromptDisabled }) {
   }, [userId]);
 
   const newChat = () => {
-    if (!chats.indexOf(chats.length).title === "New Chat") {
+    const lastChat = chats.find((chat) => chat.title === "New Chat");
+    if (!lastChat) {
       axios.post("http://localhost:8080/chats", {
         date: Date.now(),
         recipientMessage: "",
@@ -46,30 +47,27 @@ export default function Sidebar({ setMainChats, setPromptDisabled }) {
     setOpen(!open);
   };
 
-  const handleNewChat = (chatId) => {
+  const handleNewChat = () => {
+    setIsLoading(true);
     newChat();
-    if (active === chatId) {
-      setChats([
-        ...chats,
-        {
-          title: "New Chat",
-        },
-      ]);
-    }
-
+    axios.get(`http://localhost:8080/chats/${userId}`).then((response) => {
+      setChats(response.data);
+      setIsLoading(false);
+    });
     setPromptDisabled(false);
-    setActive(chatId);
     setMainChats("");
   };
 
   const handleChats = (chatId) => {
-    console.log(chats);
-    setActive(chatId);
-    setPromptDisabled(true);
-
     const selectedChat = chats.find((chat) => chat.id === chatId);
-    console.log(chats.find((chat) => chat.id === chatId));
 
+    setActive(chatId);
+
+    if (selectedChat.title === "New Chat") {
+      setPromptDisabled(false);
+    } else {
+      setPromptDisabled(true);
+    }
     setMainChats([
       {
         prompt: selectedChat.senderMessage,
