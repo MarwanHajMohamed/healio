@@ -6,6 +6,7 @@ import Sidebar from "./Sidebar";
 export default function Main() {
   const [text, setText] = useState("");
   const [chats, setChats] = useState([]);
+  const [promptDisabled, setPromptDisabled] = useState(false);
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
 
@@ -57,7 +58,7 @@ export default function Main() {
 
   return (
     <>
-      <Sidebar setMainChats={setChats} />
+      <Sidebar setMainChats={setChats} setPromptDisabled={setPromptDisabled} />
       <div className="main-container">
         <div className="conversation-container">
           <div className="prompts">
@@ -92,7 +93,10 @@ export default function Main() {
           </div>
         </div>
         <div className="user-prompt-container">
-          <form className="prompt-bar" onSubmit={handlePrompts}>
+          <form
+            className={promptDisabled ? "prompt-bar disabled" : "prompt-bar"}
+            onSubmit={handlePrompts}
+          >
             <textarea
               rows="1"
               placeholder="How can I help?"
