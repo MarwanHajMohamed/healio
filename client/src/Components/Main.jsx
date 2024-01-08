@@ -57,7 +57,7 @@ export default function Main() {
 
   return (
     <>
-      <Sidebar />
+      <Sidebar setMainChats={setChats} />
       <div className="main-container">
         <div className="conversation-container">
           <div className="prompts">

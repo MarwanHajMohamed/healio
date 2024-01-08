@@ -6,10 +6,11 @@ import { useNavigate } from "react-router-dom";
 import "../css/sidebar.css";
 import Logo from "../css/assets/Healio Logo.png";
 
-export default function Sidebar() {
+export default function Sidebar({ setMainChats }) {
   const [chats, setChats] = useState([]);
   const [toggle, setToggle] = useState(false);
   const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(null);
 
   const userId = localStorage.getItem("userId");
 
@@ -18,7 +19,7 @@ export default function Sidebar() {
       setChats(response.data);
       console.log(response.data);
     });
-  }, []);
+  }, [userId]);
 
   let navigate = useNavigate();
 
@@ -30,6 +31,18 @@ export default function Sidebar() {
   const toggleNav = () => {
     setToggle(!toggle);
     setOpen(!open);
+  };
+
+  const handleChats = (chatId) => {
+    setActive(chatId);
+    chats.map((chat) => {
+      return setMainChats([
+        {
+          prompt: chat.senderMessage,
+          response: chat.recipientMessage,
+        },
+      ]);
+    });
   };
 
   return (
@@ -55,10 +68,19 @@ export default function Sidebar() {
         </div>
         <div className="sidebar-list">
           <div className="sidebar-item-list">
-            {/* {chats.map((chat) => {
-              return <li className="side-item">{chat.chatTitle}</li>;
-            })} */}
-            {/* <li className="side-item">Test</li> */}
+            {chats.map((chat) => {
+              return (
+                <li
+                  key={chat.id}
+                  className={
+                    active === chat.id ? "side-item active" : "side-item"
+                  }
+                  onClick={() => handleChats(chat.id)}
+                >
+                  {chat.title}
+                </li>
+              );
+            })}
           </div>
         </div>
         <div className="bottom-container">
