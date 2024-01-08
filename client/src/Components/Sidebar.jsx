@@ -22,19 +22,6 @@ export default function Sidebar({ setMainChats, setPromptDisabled }) {
     });
   }, [userId]);
 
-  const newChat = () => {
-    const lastChat = chats.find((chat) => chat.title === "New Chat");
-    if (!lastChat) {
-      axios.post("http://localhost:8080/chats", {
-        date: Date.now(),
-        recipientMessage: "",
-        senderMessage: "",
-        title: "New Chat",
-        userId: localStorage.getItem("userId"),
-      });
-    }
-  };
-
   let navigate = useNavigate();
 
   const signOut = () => {
@@ -47,19 +34,35 @@ export default function Sidebar({ setMainChats, setPromptDisabled }) {
     setOpen(!open);
   };
 
-  const handleNewChat = () => {
+  const handleNewChat = async () => {
     setIsLoading(true);
-    newChat();
-    axios.get(`http://localhost:8080/chats/${userId}`).then((response) => {
+
+    try {
+      const lastChat = chats.find((chat) => chat.title === "New Chat");
+      if (!lastChat) {
+        await axios.post("http://localhost:8080/chats", {
+          date: Date.now(),
+          recipientMessage: "",
+          senderMessage: "",
+          title: "New Chat",
+          userId: localStorage.getItem("userId"),
+        });
+        setIsLoading(false);
+        setPromptDisabled(false);
+        setMainChats("");
+      }
+
+      const response = await axios.get(`http://localhost:8080/chats/${userId}`);
       setChats(response.data);
-      setIsLoading(false);
-    });
-    setPromptDisabled(false);
-    setMainChats("");
+    } catch (error) {
+      console.error("Error creating or fetching chats", error);
+    }
   };
 
   const handleChats = (chatId) => {
     const selectedChat = chats.find((chat) => chat.id === chatId);
+
+    localStorage.setItem("chatId", chatId);
 
     setActive(chatId);
 
@@ -78,11 +81,11 @@ export default function Sidebar({ setMainChats, setPromptDisabled }) {
 
   return (
     <div className="sidebar-container">
-      <div className={open ? "side-open" : "side-collapse"}>
+      <div className={open ? "side-collapse" : "side-open"}>
         <div className="chevron-container" onClick={toggleNav}>
           <i
             className={
-              "fa-solid " + (toggle ? "fa-chevron-left" : "fa-chevron-right")
+              "fa-solid " + (toggle ? "fa-chevron-right" : "fa-chevron-left")
             }
           ></i>
         </div>
@@ -98,7 +101,25 @@ export default function Sidebar({ setMainChats, setPromptDisabled }) {
           </div>
         </div>
         {isLoading ? (
-          <div style={{ textAlign: "center" }}>Loading chats...</div>
+          <div className="sidebar-list">
+            <div className="sidebar-item-list">
+              {chats
+                .map((chat) => {
+                  return (
+                    <li
+                      key={chat.id}
+                      className={
+                        active === chat.id ? "side-item active" : "side-item"
+                      }
+                      onClick={() => handleChats(chat.id)}
+                    >
+                      {chat.title}
+                    </li>
+                  );
+                })
+                .sort((a, b) => b.key - a.key)}
+            </div>
+          </div>
         ) : (
           <div className="sidebar-list">
             <div className="sidebar-item-list">

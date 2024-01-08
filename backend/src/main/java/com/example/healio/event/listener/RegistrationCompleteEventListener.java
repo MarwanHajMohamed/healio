@@ -49,11 +49,11 @@ public class RegistrationCompleteEventListener implements ApplicationListener<Re
     public void sendVerificationEmail(String url) throws UnsupportedEncodingException, MessagingException {
         String subject = "Email verification";
         String senderName = "Healio";
-        String body = "<p> Hi, " + user.getFirst_name() + ", </p>" +
-                "<p>Thank you for registering with us," + "" +
-                "Please, follow the link below to complete your registration.</p>" +
+        String body = "<p> Hi " + user.getFirst_name() + ", </p>" +
+                "<p>Thank you for registering with us! </p>" +
+                "<p>Please, follow the link below to complete your registration.</p>" +
                 "<a href=\"" + url + "\">Verify your email to activate your account</a>" +
-                "<p> Thank you <br> Healio";
+                "<p> Kind regards, </b>" + "<p> Healio </p>";
         MimeMessage message = mailSender.createMimeMessage();
         var messageHelper = new MimeMessageHelper(message);
         messageHelper.setFrom("marwan.khaj@gmail.com", senderName);

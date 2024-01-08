@@ -17,7 +17,7 @@ export default function Main() {
         block: "end",
       });
     }
-  }, [chats.length]);
+  }, []);
 
   const handlePrompts = (e) => {
     e.preventDefault();
@@ -36,9 +36,21 @@ export default function Main() {
               response: response.data,
             },
           ]);
-        })
-        .catch((error) => {
-          console.error(error.response.data);
+          console.log(response);
+          axios
+            .put(
+              `http://localhost:8080/chats/${localStorage.getItem("chatId")}`,
+              {
+                date: Date.now(),
+                recipientMessage: response.data,
+                senderMessage: JSON.parse(response.config.data)["data"],
+                title: response.data,
+                userId: localStorage.getItem("userId"),
+              }
+            )
+            .catch((error) => {
+              console.error(error.response.data);
+            });
         });
     }
   };
@@ -65,7 +77,8 @@ export default function Main() {
             {chats.length === 0 ? (
               <div className="home-screen">
                 <div className="descriptopm">
-                  Start by typing symptoms you are experiencing.
+                  Create a new chat from the sidebar to start, or select an old
+                  chat to view.
                 </div>
               </div>
             ) : (
@@ -98,21 +111,25 @@ export default function Main() {
             )}
           </div>
         </div>
-        <div className="user-prompt-container">
-          <form
-            className={promptDisabled ? "prompt-bar disabled" : "prompt-bar"}
-            onSubmit={handlePrompts}
-          >
-            <textarea
-              rows="1"
-              placeholder="How can I help?"
-              value={text}
-              ref={textareaRef}
-              onChange={handleChange}
-              onKeyDown={handleKeyDown}
-            ></textarea>
-          </form>
-        </div>
+        {chats.length === 0 ? (
+          ""
+        ) : (
+          <div className="user-prompt-container">
+            <form
+              className={promptDisabled ? "prompt-bar disabled" : "prompt-bar"}
+              onSubmit={handlePrompts}
+            >
+              <textarea
+                rows="1"
+                placeholder="How can I help?"
+                value={text}
+                ref={textareaRef}
+                onChange={handleChange}
+                onKeyDown={handleKeyDown}
+              ></textarea>
+            </form>
+          </div>
+        )}
       </div>
     </>
   );

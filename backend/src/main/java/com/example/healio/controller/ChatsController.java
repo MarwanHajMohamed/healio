@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -45,6 +46,11 @@ public class ChatsController {
 
         return ResponseEntity.ok(newChat);
 
+    }
+
+    @PutMapping("/chats/{chatId}")
+    public Chats updateChatByChatId(@PathVariable long chatId, @RequestBody Chats chat) {
+        return chatsService.updateChatByChatId(chatId, chat);
     }
 
 }
