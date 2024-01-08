@@ -18,10 +18,9 @@ public class Chats {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    private String senderId;
-    private String recipientId;
     private long userId;
     private String title;
-    private String message;
+    private String senderMessage;
+    private String recipientMessage;
     private long date;
 }

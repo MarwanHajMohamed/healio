@@ -11,18 +11,19 @@ export default function Sidebar() {
   const [toggle, setToggle] = useState(false);
   const [open, setOpen] = useState(false);
 
-  //   useEffect(() => {
-  //     axios.get("/topic").then((response) => {
-  //       setTopics(response.data);
-  //       console.log(response.data);
-  //     });
-  //   }, []);
+  const userId = localStorage.getItem("userId");
+
+  useEffect(() => {
+    axios.get(`http://localhost:8080/chats/${userId}`).then((response) => {
+      setChats(response.data);
+      console.log(response.data);
+    });
+  }, []);
 
   let navigate = useNavigate();
 
   const signOut = () => {
-    localStorage.setItem("token", "");
-    localStorage.setItem("user", "");
+    localStorage.clear();
     navigate("/");
   };
 
@@ -34,12 +35,13 @@ export default function Sidebar() {
   return (
     <div className="sidebar-container">
       <div className={open ? "side-open" : "side-collapse"}>
-        <i
-          onClick={toggleNav}
-          className={
-            "fa-solid " + (toggle ? "fa-chevron-left" : "fa-chevron-right")
-          }
-        ></i>
+        <div className="chevron-container" onClick={toggleNav}>
+          <i
+            className={
+              "fa-solid " + (toggle ? "fa-chevron-left" : "fa-chevron-right")
+            }
+          ></i>
+        </div>
         <div className="sidebar">
           <div className="heading-container">
             <div className="new-chat">

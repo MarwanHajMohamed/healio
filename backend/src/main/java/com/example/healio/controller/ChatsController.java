@@ -32,13 +32,14 @@ public class ChatsController {
 
     @PostMapping("/chats")
     public ResponseEntity<?> addChats(@RequestBody ChatsDTO newChat) {
+        System.out.println("Received ChatsDTO: " + newChat.getRecipientMessage());
+
         Chats chats = new Chats(
                 newChat.getId(),
-                newChat.getSenderId(),
-                newChat.getRecipientId(),
                 newChat.getUserId(),
                 newChat.getTitle(),
-                newChat.getMessage(),
+                newChat.getSenderMessage(),
+                newChat.getRecipientMessage(),
                 newChat.getDate());
         chatsService.addChats(chats);
 

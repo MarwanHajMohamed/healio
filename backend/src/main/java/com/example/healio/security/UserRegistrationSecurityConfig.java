@@ -14,7 +14,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
-public class UserRegistrattionSecurityConfig implements WebMvcConfigurer {
+public class UserRegistrationSecurityConfig implements WebMvcConfigurer {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -32,6 +32,8 @@ public class UserRegistrattionSecurityConfig implements WebMvcConfigurer {
                 .requestMatchers("/register/**")
                 .permitAll()
                 .requestMatchers("/login")
+                .permitAll()
+                .requestMatchers("/chats/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()

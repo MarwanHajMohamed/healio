@@ -31,8 +31,9 @@ export default function Login() {
         console.log(res);
 
         if (res.status === 200) {
-          localStorage.setItem("token", res.data);
+          localStorage.setItem("token", res.data.jwt);
           localStorage.setItem("user", email);
+          localStorage.setItem("userId", res.data.userId);
           navigate("/chat");
         } else {
           setError("Incorrect email or password.");
