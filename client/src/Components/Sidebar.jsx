@@ -6,10 +6,16 @@ import { useNavigate } from "react-router-dom";
 import "../css/sidebar.css";
 import Logo from "../css/assets/Healio Logo.png";
 
-export default function Sidebar({ setMainChats, setPromptDisabled }) {
+export default function Sidebar({
+  setMainChats,
+  setPromptDisabled,
+  open,
+  setOpen,
+  selectedChat,
+  setSelectedChat,
+}) {
   const [chats, setChats] = useState([]);
   const [toggle, setToggle] = useState(false);
-  const [open, setOpen] = useState(false);
   const [active, setActive] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -36,6 +42,7 @@ export default function Sidebar({ setMainChats, setPromptDisabled }) {
 
   const handleNewChat = async () => {
     setIsLoading(true);
+    setSelectedChat("New Chat");
 
     try {
       const lastChat = chats.find((chat) => chat.title === "New Chat");
@@ -49,7 +56,7 @@ export default function Sidebar({ setMainChats, setPromptDisabled }) {
         });
         setIsLoading(false);
         setPromptDisabled(false);
-        setMainChats("");
+        setMainChats([]);
       }
 
       const response = await axios.get(`http://localhost:8080/chats/${userId}`);
@@ -81,7 +88,7 @@ export default function Sidebar({ setMainChats, setPromptDisabled }) {
 
   return (
     <div className="sidebar-container">
-      <div className={open ? "side-collapse" : "side-open"}>
+      <div className={open ? "side-open" : "side-collapse"}>
         <div className="chevron-container" onClick={toggleNav}>
           <i
             className={
