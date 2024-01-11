@@ -13,6 +13,7 @@ export default function Main() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [file, setFile] = useState({});
   const [diagnosisSentence, setDiagnosisSentence] = useState("");
+  const [selectedChatTitle, setSelectedChatTitle] = useState("");
 
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
@@ -49,6 +50,7 @@ export default function Main() {
               response: response.data,
             },
           ]);
+          setSelectedChatTitle(response.data);
           // Store in database
           axios
             .put(
@@ -129,14 +131,7 @@ export default function Main() {
       <div className="main-container">
         <div className="conversation-container">
           <div className="prompts">
-            {selectedChat === null ? (
-              <div className={open ? "home-screen open" : "home-screen"}>
-                <div className="description">
-                  Create a new chat from the sidebar to start, or select an old
-                  chat to view.
-                </div>
-              </div>
-            ) : selectedChat === "New Chat" ? (
+            {chats.length === 0 ? (
               <div className={open ? "home-screen open" : "home-screen"}>
                 <div className="description">
                   Start by typing symptoms you are experiencing.

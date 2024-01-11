@@ -57,6 +57,13 @@ export default function Sidebar({
         setPromptDisabled(false);
         setMainChats([]);
       }
+      await axios.get("http://localhost:8080/chats").then((response) => {
+        setActive(response.data[response.data.length - 1].id);
+        localStorage.setItem(
+          "chatId",
+          response.data[response.data.length - 1].id
+        );
+      });
 
       const response = await axios.get(`http://localhost:8080/chats/${userId}`);
       setChats(response.data);
@@ -77,7 +84,6 @@ export default function Sidebar({
       setSelectedChat("New Chat");
       setMainChats([]);
     } else {
-      setSelectedChat(selectedChat.title);
       setPromptDisabled(true);
       setMainChats([
         {
@@ -142,7 +148,7 @@ export default function Sidebar({
                       }
                       onClick={() => handleChats(chat.id)}
                     >
-                      {chat.title}
+                      {chat.title[0].toUpperCase() + chat.title.slice(1)}
                     </li>
                   );
                 })
