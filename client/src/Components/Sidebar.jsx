@@ -43,6 +43,15 @@ export default function Sidebar({
     setIsLoading(true);
     setSelectedChat("New Chat");
 
+    // Store new conversation
+    axios
+      .post(`http://localhost:8080/conversations`, {
+        title: "New Chat",
+      })
+      .then((response) => {
+        console.log(response);
+      });
+
     try {
       const lastChat = chats.find((chat) => chat.title === "New Chat");
       if (!lastChat) {

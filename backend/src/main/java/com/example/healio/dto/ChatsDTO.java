@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class ChatsDTO {
     private long id;
+    private long conversationId;
     private long userId;
     private String title;
     private String senderMessage;

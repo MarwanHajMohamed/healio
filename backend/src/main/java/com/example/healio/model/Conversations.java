@@ -14,14 +14,9 @@ import lombok.Setter;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Chats {
+public class Conversations {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
     private long conversationId;
-    private long userId;
     private String title;
-    private String senderMessage;
-    private String recipientMessage;
-    private long date;
 }

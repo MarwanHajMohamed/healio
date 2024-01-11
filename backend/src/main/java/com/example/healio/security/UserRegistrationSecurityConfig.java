@@ -35,6 +35,8 @@ public class UserRegistrationSecurityConfig implements WebMvcConfigurer {
                 .permitAll()
                 .requestMatchers("/chats/**")
                 .permitAll()
+                .requestMatchers("/conversations/**")
+                .permitAll()
                 .anyRequest()
                 .authenticated()
                 .and()
