@@ -8,4 +8,5 @@ import lombok.Setter;
 public class ConversationDTO {
     private long conversationId;
     private String title;
+    private long userId;
 }

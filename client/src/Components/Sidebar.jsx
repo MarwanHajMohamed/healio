@@ -24,6 +24,7 @@ export default function Sidebar({
     axios.get(`http://localhost:8080/chats/${userId}`).then((response) => {
       setChats(response.data);
       setIsLoading(false);
+      // axios.get(`http://localhost:8080/conversations/${}`)
     });
   }, [userId]);
 
@@ -43,25 +44,28 @@ export default function Sidebar({
     setIsLoading(true);
     setSelectedChat("New Chat");
 
-    // Store new conversation
-    axios
-      .post(`http://localhost:8080/conversations`, {
-        title: "New Chat",
-      })
-      .then((response) => {
-        console.log(response);
-      });
-
     try {
       const lastChat = chats.find((chat) => chat.title === "New Chat");
       if (!lastChat) {
-        await axios.post("http://localhost:8080/chats", {
-          date: Date.now(),
-          recipientMessage: "",
-          senderMessage: "",
-          title: "New Chat",
-          userId: localStorage.getItem("userId"),
-        });
+        // Store new conversation
+        await axios
+          .post(`http://localhost:8080/conversations`, {
+            title: "New Chat",
+          })
+          .then((response) => {
+            localStorage.setItem(
+              "conversationId",
+              response.data.conversationId
+            );
+            console.log(localStorage.getItem("conversationId"));
+          });
+        // await axios.post("http://localhost:8080/chats", {
+        //   date: Date.now(),
+        //   recipientMessage: "",
+        //   senderMessage: "",
+        //   title: "New Chat",
+        //   userId: localStorage.getItem("userId"),
+        // });
         setIsLoading(false);
         setPromptDisabled(false);
         setMainChats([]);

@@ -76,20 +76,29 @@ export default function Main() {
             });
 
           // Store in database
-          axios
-            .put(
-              `http://localhost:8080/chats/${localStorage.getItem("chatId")}`,
-              {
-                date: Date.now(),
-                recipientMessage: newResponse,
-                senderMessage: JSON.parse(response.config.data)["data"],
-                title: response.data,
-                userId: localStorage.getItem("userId"),
-              }
-            )
-            .catch((error) => {
-              console.error(error.response.data);
-            });
+          // axios
+          //   .put(
+          //     `http://localhost:8080/chats/${localStorage.getItem("chatId")}`,
+          //     {
+          //       date: Date.now(),
+          //       recipientMessage: newResponse,
+          //       senderMessage: JSON.parse(response.config.data)["data"],
+          //       title: response.data,
+          //       userId: localStorage.getItem("userId"),
+          //     }
+          //   )
+          //   .catch((error) => {
+          //     console.error(error.response.data);
+          //   });
+
+          axios.post(`http://localhost:8080/chats`, {
+            date: Date.now(),
+            recipientMessage: newResponse,
+            senderMessage: JSON.parse(response.config.data)["data"],
+            title: response.data,
+            userId: localStorage.getItem("userId"),
+            conversationId: localStorage.getItem("conversationId"),
+          });
         });
     }
   };

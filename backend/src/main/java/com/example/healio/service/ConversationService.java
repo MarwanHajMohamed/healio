@@ -26,8 +26,12 @@ public class ConversationService {
         return conversationRepository.findByConversationId(id);
     }
 
-    public void addConversation(Conversations conversations) {
-        conversationRepository.save(conversations);
+    public List<Conversations> getConversationByUserId(long userId) {
+        return conversationRepository.findConversationByUserId(userId);
+    }
+
+    public Conversations addConversation(Conversations conversations) {
+        return conversationRepository.save(conversations);
     }
 
 }

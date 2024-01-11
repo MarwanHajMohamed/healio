@@ -30,14 +30,21 @@ public class ConversationController {
         return conversationService.getConversationById(conversationId);
     }
 
+    @GetMapping("/conversations/{userId}")
+    public List<Conversations> getConversationsByUserId(@PathVariable(value = "userId") long userId) {
+        return conversationService.getConversationById(userId);
+    }
+
     @PostMapping("/conversations")
     public ResponseEntity<?> addConversation(@RequestBody ConversationDTO newConversation) {
-        Conversations conversations = new Conversations(
-                newConversation.getConversationId(),
-                newConversation.getTitle());
-        conversationService.addConversation(conversations);
+        Conversations conversations = new Conversations(newConversation.getTitle(), newConversation.getUserId());
+        Conversations savedConversations = conversationService.addConversation(conversations);
 
-        return ResponseEntity.ok(newConversation);
+        ConversationDTO responseDTO = new ConversationDTO();
+        responseDTO.setConversationId(savedConversations.getConversationId());
+        responseDTO.setTitle(savedConversations.getTitle());
+
+        return ResponseEntity.ok(responseDTO);
     }
 
 }

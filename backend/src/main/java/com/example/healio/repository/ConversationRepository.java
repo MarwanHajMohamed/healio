@@ -8,4 +8,6 @@ import com.example.healio.model.Conversations;
 
 public interface ConversationRepository extends JpaRepository<Conversations, Long> {
     List<Conversations> findByConversationId(Long id);
+
+    List<Conversations> findConversationByUserId(Long id);
 }
