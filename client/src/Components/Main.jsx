@@ -13,7 +13,7 @@ export default function Main() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [file, setFile] = useState({});
   const [diagnosisSentence, setDiagnosisSentence] = useState("");
-  const [description, setDescription] = useState("");
+  const [currentResponse, setCurrentResponse] = useState("");
 
   const key = process.env.REACT_APP_API_KEY;
 
@@ -37,21 +37,27 @@ export default function Main() {
       setText("");
       textareaRef.current.style.height = "33px";
 
-      const randomDiagnosis = Math.floor(
-        Math.random() * sentences.diagnosis_starter.length
-      );
-      setDiagnosisSentence(
-        sentences.diagnosis_starter[randomDiagnosis].message
-      );
       // Predict disease using model
       axios
         .post("http://127.0.0.1:5000/predict", { data: e.target.value })
         .then((response) => {
+          const randomIndex = Math.floor(
+            Math.random() * sentences.diagnosis_starter.length
+          );
+
+          const newDiagnosisSentence =
+            sentences.diagnosis_starter[randomIndex].message;
+          setDiagnosisSentence(newDiagnosisSentence);
+
+          var newResponse =
+            newDiagnosisSentence + "<b>" + response.data + "</b>";
+          setCurrentResponse(newResponse);
+
           setChats([
             ...chats,
             {
               prompt: JSON.parse(response.config.data)["data"],
-              response: response.data,
+              response: newResponse,
             },
           ]);
 
@@ -59,13 +65,13 @@ export default function Main() {
 
           // Get NHS description of disease
           axios
-            .get(`https://api.nhs.uk/conditions/${disease}/modules`, {
+            .get(`https://api.nhs.uk/conditions/${disease}`, {
               headers: {
                 "subscription-key": key,
               },
             })
             .then((response) => {
-              console.log(response.data);
+              // console.log(response.data);
               // setDescription(response.data.description);
             });
 
@@ -75,7 +81,7 @@ export default function Main() {
               `http://localhost:8080/chats/${localStorage.getItem("chatId")}`,
               {
                 date: Date.now(),
-                recipientMessage: response.data,
+                recipientMessage: newResponse,
                 senderMessage: JSON.parse(response.config.data)["data"],
                 title: response.data,
                 userId: localStorage.getItem("userId"),
@@ -168,13 +174,11 @@ export default function Main() {
                     </div>
                     <div className="prompt-container">
                       <div className="prompt-title healio">Healio</div>
-                      <div className="prompt" id="prompt">
-                        {diagnosisSentence}
-                        <span style={{ fontWeight: "800" }}>
-                          {chat.response}
-                        </span>
-                        . {description}
-                      </div>
+                      <div
+                        className="prompt"
+                        id="prompt"
+                        dangerouslySetInnerHTML={{ __html: chat.response }}
+                      />
                     </div>
                   </div>
                 );
