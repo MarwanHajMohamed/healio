@@ -13,7 +13,8 @@ export default function Main() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [file, setFile] = useState({});
   const [diagnosisSentence, setDiagnosisSentence] = useState("");
-  const [selectedChatTitle, setSelectedChatTitle] = useState("");
+
+  const key = "";
 
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
@@ -25,10 +26,6 @@ export default function Main() {
         block: "end",
       });
     }
-    const randomDiagnosis = Math.floor(
-      Math.random() * sentences.diagnosis_starter.length
-    );
-    setDiagnosisSentence(sentences.diagnosis_starter[randomDiagnosis].message);
   }, []);
 
   // Handles storing chats to database and making prediction of disease
@@ -39,6 +36,12 @@ export default function Main() {
       setText("");
       textareaRef.current.style.height = "33px";
 
+      const randomDiagnosis = Math.floor(
+        Math.random() * sentences.diagnosis_starter.length
+      );
+      setDiagnosisSentence(
+        sentences.diagnosis_starter[randomDiagnosis].message
+      );
       // Predict disease using model
       axios
         .post("http://127.0.0.1:5000/predict", { data: e.target.value })
@@ -50,7 +53,7 @@ export default function Main() {
               response: response.data,
             },
           ]);
-          setSelectedChatTitle(response.data);
+
           // Store in database
           axios
             .put(
@@ -126,7 +129,6 @@ export default function Main() {
         open={open}
         setOpen={setOpen}
         selectedChat={selectedChat}
-        setSelectedChat={setSelectedChat}
       />
       <div className="main-container">
         <div className="conversation-container">
