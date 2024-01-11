@@ -13,8 +13,9 @@ export default function Main() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [file, setFile] = useState({});
   const [diagnosisSentence, setDiagnosisSentence] = useState("");
+  const [description, setDescription] = useState("");
 
-  const key = "";
+  const key = process.env.REACT_APP_API_KEY;
 
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
@@ -53,6 +54,20 @@ export default function Main() {
               response: response.data,
             },
           ]);
+
+          var disease = response.data.replace(/\s+/g, "-").toLowerCase();
+
+          // Get NHS description of disease
+          axios
+            .get(`https://api.nhs.uk/conditions/${disease}/modules`, {
+              headers: {
+                "subscription-key": key,
+              },
+            })
+            .then((response) => {
+              console.log(response.data);
+              // setDescription(response.data.description);
+            });
 
           // Store in database
           axios
@@ -129,6 +144,7 @@ export default function Main() {
         open={open}
         setOpen={setOpen}
         selectedChat={selectedChat}
+        setSelectedChat={setSelectedChat}
       />
       <div className="main-container">
         <div className="conversation-container">
@@ -157,7 +173,7 @@ export default function Main() {
                         <span style={{ fontWeight: "800" }}>
                           {chat.response}
                         </span>
-                        .
+                        . {description}
                       </div>
                     </div>
                   </div>
