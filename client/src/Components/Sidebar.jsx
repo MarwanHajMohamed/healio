@@ -11,7 +11,6 @@ export default function Sidebar({
   setPromptDisabled,
   open,
   setOpen,
-  selectedChat,
   setSelectedChat,
 }) {
   const [chats, setChats] = useState([]);
@@ -75,15 +74,18 @@ export default function Sidebar({
 
     if (selectedChat.title === "New Chat") {
       setPromptDisabled(false);
+      setSelectedChat("New Chat");
+      setMainChats([]);
     } else {
+      setSelectedChat(selectedChat.title);
       setPromptDisabled(true);
+      setMainChats([
+        {
+          prompt: selectedChat.senderMessage,
+          response: selectedChat.recipientMessage,
+        },
+      ]);
     }
-    setMainChats([
-      {
-        prompt: selectedChat.senderMessage,
-        response: selectedChat.recipientMessage,
-      },
-    ]);
   };
 
   return (

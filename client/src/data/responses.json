@@ -1,0 +1,16 @@
+{
+    "diagnosis_starter": [
+        {
+            "id": 1,
+            "message": "Based on the symptoms you've described, it's possible that you might be experiencing "
+        },
+        {
+            "id": 2,
+            "message": "Your symptoms are commonly associated with conditions like "
+        },
+        {
+            "id": 3,
+            "message": "The symptoms you're experiencing often align with "
+        }
+    ]
+}

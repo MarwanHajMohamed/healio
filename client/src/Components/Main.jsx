@@ -3,6 +3,7 @@ import "../css/main.css";
 import axios from "axios";
 import Sidebar from "./Sidebar";
 import jsPDF from "jspdf";
+import sentences from "../data/responses.json";
 
 export default function Main() {
   const [text, setText] = useState("");
@@ -11,6 +12,7 @@ export default function Main() {
   const [open, setOpen] = useState(true);
   const [selectedChat, setSelectedChat] = useState(null);
   const [file, setFile] = useState({});
+  const [diagnosisSentence, setDiagnosisSentence] = useState("");
 
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
@@ -22,6 +24,10 @@ export default function Main() {
         block: "end",
       });
     }
+    const randomDiagnosis = Math.floor(
+      Math.random() * sentences.diagnosis_starter.length
+    );
+    setDiagnosisSentence(sentences.diagnosis_starter[randomDiagnosis].message);
   }, []);
 
   // Handles storing chats to database and making prediction of disease
@@ -43,8 +49,6 @@ export default function Main() {
               response: response.data,
             },
           ]);
-          console.log(response);
-
           // Store in database
           axios
             .put(
@@ -82,7 +86,7 @@ export default function Main() {
   // Format JSON chat to PDF
   const formatJsonForPdf = (jsonArray) => {
     let formattedText = "";
-    jsonArray.forEach((obj, index) => {
+    jsonArray.forEach((obj) => {
       for (let key in obj) {
         if (obj.hasOwnProperty(key)) {
           formattedText += `  ${key}: ${obj[key]}\n`;
@@ -115,6 +119,7 @@ export default function Main() {
     <>
       <Sidebar
         setMainChats={setChats}
+        promp
         setPromptDisabled={setPromptDisabled}
         open={open}
         setOpen={setOpen}
@@ -124,22 +129,22 @@ export default function Main() {
       <div className="main-container">
         <div className="conversation-container">
           <div className="prompts">
-            {chats.length === 0 ? (
+            {selectedChat === null ? (
               <div className={open ? "home-screen open" : "home-screen"}>
                 <div className="description">
                   Create a new chat from the sidebar to start, or select an old
                   chat to view.
                 </div>
               </div>
+            ) : selectedChat === "New Chat" ? (
+              <div className={open ? "home-screen open" : "home-screen"}>
+                <div className="description">
+                  Start by typing symptoms you are experiencing.
+                </div>
+              </div>
             ) : (
               chats.map((chat) => {
-                return selectedChat === "New Chat" && chat.response === "" ? (
-                  <div className={open ? "home-screen open" : "home-screen"}>
-                    <div className="description">
-                      Start by typing symptoms you are experiencing.
-                    </div>
-                  </div>
-                ) : (
+                return (
                   <div
                     className={open ? "chat-container open" : "chat-container"}
                     ref={ref}
@@ -151,7 +156,7 @@ export default function Main() {
                     <div className="prompt-container">
                       <div className="prompt-title healio">Healio</div>
                       <div className="prompt" id="prompt">
-                        It is likely for you to have{" "}
+                        {diagnosisSentence}
                         <span style={{ fontWeight: "800" }}>
                           {chat.response}
                         </span>
@@ -164,33 +169,29 @@ export default function Main() {
             )}
           </div>
         </div>
-        {chats.length === 0 ? (
-          ""
-        ) : (
-          <div
-            className={
-              open ? "user-prompt-container open" : "user-prompt-container"
-            }
+        <div
+          className={
+            open ? "user-prompt-container open" : "user-prompt-container"
+          }
+        >
+          <form
+            className={promptDisabled ? "prompt-bar disabled" : "prompt-bar"}
+            onSubmit={handlePrompts}
           >
-            <form
-              className={promptDisabled ? "prompt-bar disabled" : "prompt-bar"}
-              onSubmit={handlePrompts}
-            >
-              <textarea
-                rows="1"
-                placeholder="How can I help?"
-                value={text}
-                ref={textareaRef}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-              ></textarea>
-            </form>
+            <textarea
+              rows="1"
+              placeholder="How can I help?"
+              value={text}
+              ref={textareaRef}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+            ></textarea>
+          </form>
 
-            <div className="options-container">
-              <i class="fa-solid fa-file-export" onClick={handleExport}></i>
-            </div>
+          <div className="options-container">
+            <i class="fa-solid fa-file-export" onClick={handleExport}></i>
           </div>
-        )}
+        </div>
       </div>
     </>
   );
