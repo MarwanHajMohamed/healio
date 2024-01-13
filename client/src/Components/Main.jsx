@@ -4,6 +4,8 @@ import axios from "axios";
 import Sidebar from "./Sidebar";
 import jsPDF from "jspdf";
 import sentences from "../data/responses.json";
+import DOMPurify from "dompurify";
+import html2canvas from "html2canvas";
 
 export default function Main() {
   const [text, setText] = useState("");
@@ -18,6 +20,7 @@ export default function Main() {
 
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
+  const chatContainerRef = useRef(null);
 
   useEffect(() => {
     if (chats.length) {
@@ -131,22 +134,50 @@ export default function Main() {
     return formattedText;
   };
 
-  // Download PDF Method
-  const downloadPdf = (file, name) => {
+  const downloadPdf = (chats, name) => {
     const doc = new jsPDF();
-    const formattedFile = formatJsonForPdf(file);
-    doc.text(formattedFile, 10, 10);
+    // Set your desired background color in RGB
+    const backgroundColor = [26, 54, 26]; // Example: light grey
+    doc.setFillColor(...backgroundColor);
+    doc.rect(0, 0, doc.internal.pageSize.getWidth(), 30, "F");
+
+    let yPosition = 40; // Initial Y position for first line of text
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 10;
+    const maxWidth = pageWidth - margin * 2; // Maximum width of text per line
+    const textWidth = doc.getTextWidth(text);
+
+    doc.setTextColor("white");
+    doc.setFontSize(20);
+    doc.text("Healio", (pageWidth - 15 - textWidth) / 2, 20);
+
+    chats.forEach((chat) => {
+      doc.setFontSize(14);
+      doc.setTextColor("black");
+      // Add user prompt to PDF
+      let lines = doc.splitTextToSize(`You: ${chat.prompt}`, maxWidth);
+      doc.text(lines, margin, yPosition);
+      yPosition += (lines.length + 0.5) * 7; // Increment Y position for spacing
+
+      // Add Healio response to PDF, ensuring HTML tags are removed
+      let responseText = chat.response.replace(/<[^>]*>?/gm, ""); // Remove HTML tags
+      lines = doc.splitTextToSize(`Healio: ${responseText}`, maxWidth);
+      doc.text(lines, margin, yPosition);
+      yPosition += (lines.length + 0.5) * 7; // Increment Y position for spacing
+
+      // Check if we need to add a new page
+      if (yPosition >= doc.internal.pageSize.getHeight() - 20) {
+        doc.addPage();
+        yPosition = 10; // Reset Y position for the new page
+      }
+    });
+
     doc.save(name);
   };
 
-  // Store chats in array and download PDF
+  // Trigger the PDF download with the chats data
   const handleExport = () => {
-    const exportData = chats.map((chat) => ({
-      You: chat.prompt,
-      Healio: chat.response,
-    }));
-
-    downloadPdf(exportData, "Healio Diagnosis");
+    downloadPdf(chats, "Healio_Diagnosis.pdf");
   };
 
   return (
@@ -162,7 +193,7 @@ export default function Main() {
         setSelectedChat={setSelectedChat}
       />
       <div className="main-container">
-        <div className="conversation-container">
+        <div className="conversation-container" ref={chatContainerRef}>
           <div className="prompts">
             {chats.length === 0 ? (
               <div className={open ? "home-screen open" : "home-screen"}>
