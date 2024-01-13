@@ -254,7 +254,11 @@ export default function Main() {
           </form>
 
           <div className="options-container">
-            <i class="fa-solid fa-file-export" onClick={handleExport}></i>
+            {chats.length === 0 ? (
+              <i class="fa-solid fa-file-export disabled"></i>
+            ) : (
+              <i class="fa-solid fa-file-export" onClick={handleExport}></i>
+            )}
           </div>
         </div>
       </div>
