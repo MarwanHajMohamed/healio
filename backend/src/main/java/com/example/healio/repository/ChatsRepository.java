@@ -9,4 +9,6 @@ public interface ChatsRepository extends JpaRepository<Chats, Long> {
 
     List<Chats> findByUserId(long userId);
 
+    List<Chats> findByConversationId(long conversationId);
+
 }

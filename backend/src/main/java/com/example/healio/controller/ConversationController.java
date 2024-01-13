@@ -30,9 +30,9 @@ public class ConversationController {
         return conversationService.getConversationById(conversationId);
     }
 
-    @GetMapping("/conversations/{userId}")
+    @GetMapping("/conversations/user/{userId}")
     public List<Conversations> getConversationsByUserId(@PathVariable(value = "userId") long userId) {
-        return conversationService.getConversationById(userId);
+        return conversationService.getConversationByUserId(userId);
     }
 
     @PostMapping("/conversations")

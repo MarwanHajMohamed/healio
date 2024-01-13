@@ -11,7 +11,6 @@ export default function Main() {
   const [promptDisabled, setPromptDisabled] = useState(false);
   const [open, setOpen] = useState(true);
   const [selectedChat, setSelectedChat] = useState(null);
-  const [file, setFile] = useState({});
   const [diagnosisSentence, setDiagnosisSentence] = useState("");
   const [currentResponse, setCurrentResponse] = useState("");
 
@@ -44,6 +43,7 @@ export default function Main() {
           const randomIndex = Math.floor(
             Math.random() * sentences.diagnosis_starter.length
           );
+          console.log(response.data);
 
           const newDiagnosisSentence =
             sentences.diagnosis_starter[randomIndex].message;
@@ -64,16 +64,16 @@ export default function Main() {
           var disease = response.data.replace(/\s+/g, "-").toLowerCase();
 
           // Get NHS description of disease
-          axios
-            .get(`https://api.nhs.uk/conditions/${disease}`, {
-              headers: {
-                "subscription-key": key,
-              },
-            })
-            .then((response) => {
-              // console.log(response.data);
-              // setDescription(response.data.description);
-            });
+          // axios
+          //   .get(`https://api.nhs.uk/conditions/${disease}`, {
+          //     headers: {
+          //       "subscription-key": key,
+          //     },
+          //   })
+          //   .then((response) => {
+          //     // console.log(response.data);
+          //     // setDescription(response.data.description);
+          //   });
 
           // Store in database
           // axios
@@ -145,7 +145,6 @@ export default function Main() {
       You: chat.prompt,
       Healio: chat.response,
     }));
-    setFile(exportData);
 
     downloadPdf(exportData, "Healio Diagnosis");
   };
@@ -153,7 +152,8 @@ export default function Main() {
   return (
     <>
       <Sidebar
-        setMainChats={setChats}
+        chats={chats}
+        setChats={setChats}
         promp
         setPromptDisabled={setPromptDisabled}
         open={open}

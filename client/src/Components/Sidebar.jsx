@@ -7,13 +7,14 @@ import "../css/sidebar.css";
 import Logo from "../css/assets/Healio Logo.png";
 
 export default function Sidebar({
-  setMainChats,
+  chats,
+  setChats,
   setPromptDisabled,
   open,
   setOpen,
   setSelectedChat,
 }) {
-  const [chats, setChats] = useState([]);
+  const [conversations, setConversations] = useState([]);
   const [toggle, setToggle] = useState(false);
   const [active, setActive] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,11 +22,17 @@ export default function Sidebar({
   const userId = localStorage.getItem("userId");
 
   useEffect(() => {
-    axios.get(`http://localhost:8080/chats/${userId}`).then((response) => {
-      setChats(response.data);
-      setIsLoading(false);
-      // axios.get(`http://localhost:8080/conversations/${}`)
-    });
+    // setChats(response.data);
+    axios
+      .get(`http://localhost:8080/conversations/user/${userId}`)
+      .then((res) => {
+        if (res.data.length === []) {
+          return;
+        }
+        setConversations(res.data);
+        console.log(conversations);
+        setIsLoading(false);
+      });
   }, [userId]);
 
   let navigate = useNavigate();
@@ -45,12 +52,13 @@ export default function Sidebar({
     setSelectedChat("New Chat");
 
     try {
-      const lastChat = chats.find((chat) => chat.title === "New Chat");
+      const lastChat = conversations.find((chat) => chat.title === "New Chat");
       if (!lastChat) {
         // Store new conversation
         await axios
           .post(`http://localhost:8080/conversations`, {
             title: "New Chat",
+            userId: userId,
           })
           .then((response) => {
             localStorage.setItem(
@@ -68,42 +76,63 @@ export default function Sidebar({
         // });
         setIsLoading(false);
         setPromptDisabled(false);
-        setMainChats([]);
+        setChats([]);
       }
-      await axios.get("http://localhost:8080/chats").then((response) => {
-        setActive(response.data[response.data.length - 1].id);
-        localStorage.setItem(
-          "chatId",
-          response.data[response.data.length - 1].id
-        );
-      });
+      // await axios.get("http://localhost:8080/chats").then((response) => {
+      //   setActive(response.data[response.data.length - 1].id);
+      //   localStorage.setItem(
+      //     "chatId",
+      //     response.data[response.data.length - 1].id
+      //   );
+      // });
+      // setChats(response.data);
+      axios
+        .get(`http://localhost:8080/conversations/user/${userId}`)
+        .then((res) => {
+          if (res.data.length === 0) {
+            setChats(res.data);
+            setIsLoading(false);
+          }
+        });
+
+      setConversations(response.data);
 
       const response = await axios.get(`http://localhost:8080/chats/${userId}`);
-      setChats(response.data);
+      setConversations(response.data);
     } catch (error) {
       console.error("Error creating or fetching chats", error);
     }
   };
 
-  const handleChats = (chatId) => {
-    const selectedChat = chats.find((chat) => chat.id === chatId);
+  const handleConversations = (id) => {
+    const selectedChat = conversations.find(
+      (conversation) => conversation.conversationId === id
+    );
 
-    localStorage.setItem("chatId", chatId);
+    localStorage.setItem("conversationId", id);
 
-    setActive(chatId);
+    setActive(id);
 
     if (selectedChat.title === "New Chat") {
       setPromptDisabled(false);
       setSelectedChat("New Chat");
-      setMainChats([]);
+      setChats([]);
     } else {
       setPromptDisabled(true);
-      setMainChats([
-        {
-          prompt: selectedChat.senderMessage,
-          response: selectedChat.recipientMessage,
-        },
-      ]);
+      axios
+        .get(
+          `http://localhost:8080/chats/conversation/${selectedChat.conversationId}`
+        )
+        .then((response) => {
+          const newChats = response.data.map((chat) => ({
+            prompt: chat.senderMessage,
+            response: chat.recipientMessage,
+          }));
+          setChats(newChats);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     }
   };
 
@@ -131,17 +160,21 @@ export default function Sidebar({
         {isLoading ? (
           <div className="sidebar-list">
             <div className="sidebar-item-list">
-              {chats
-                .map((chat) => {
+              {conversations
+                .map((conversation) => {
                   return (
                     <li
-                      key={chat.id}
+                      key={conversation.conversationId}
                       className={
-                        active === chat.id ? "side-item active" : "side-item"
+                        active === conversation.conversationId
+                          ? "side-item active"
+                          : "side-item"
                       }
-                      onClick={() => handleChats(chat.id)}
+                      onClick={() =>
+                        handleConversations(conversation.conversationId)
+                      }
                     >
-                      {chat.title}
+                      {conversation.title}
                     </li>
                   );
                 })
@@ -151,17 +184,22 @@ export default function Sidebar({
         ) : (
           <div className="sidebar-list">
             <div className="sidebar-item-list">
-              {chats
-                .map((chat) => {
+              {conversations
+                .map((conversation) => {
                   return (
                     <li
-                      key={chat.id}
+                      key={conversation.conversationId}
                       className={
-                        active === chat.id ? "side-item active" : "side-item"
+                        active === conversation.conversationId
+                          ? "side-item active"
+                          : "side-item"
                       }
-                      onClick={() => handleChats(chat.id)}
+                      onClick={() =>
+                        handleConversations(conversation.conversationId)
+                      }
                     >
-                      {chat.title[0].toUpperCase() + chat.title.slice(1)}
+                      {conversation.title[0].toUpperCase() +
+                        conversation.title.slice(1)}
                     </li>
                   );
                 })

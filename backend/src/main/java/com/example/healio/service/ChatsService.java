@@ -26,6 +26,10 @@ public class ChatsService {
         return chatsRepository.findByUserId(userId);
     }
 
+    public List<Chats> getChatsByConversationId(long conversationId) {
+        return chatsRepository.findByConversationId(conversationId);
+    }
+
     public void addChats(Chats chats) {
         chatsRepository.save(chats);
     }

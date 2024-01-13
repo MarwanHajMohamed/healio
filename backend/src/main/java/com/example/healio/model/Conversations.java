@@ -17,6 +17,9 @@ public class Conversations {
     private String title;
     private long userId;
 
+    public Conversations() {
+    }
+
     public Conversations(String title, long userId) {
         this.title = title;
         this.userId = userId;

@@ -31,6 +31,11 @@ public class ChatsController {
         return chatsService.getChatsByUserId(userId);
     }
 
+    @GetMapping("/chats/conversation/{conversationId}")
+    public List<Chats> getChatsBuConversationId(@PathVariable(value = "conversationId") long conversationId) {
+        return chatsService.getChatsByConversationId(conversationId);
+    }
+
     @PostMapping("/chats")
     public ResponseEntity<?> addChats(@RequestBody ChatsDTO newChat) {
         Chats chats = new Chats(
