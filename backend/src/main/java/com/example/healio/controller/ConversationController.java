@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -45,6 +47,17 @@ public class ConversationController {
         responseDTO.setTitle(savedConversations.getTitle());
 
         return ResponseEntity.ok(responseDTO);
+    }
+
+    @PutMapping("/conversations/{conversationId}")
+    public Conversations updateConversationTitle(@PathVariable long conversationId,
+            @RequestBody Conversations conversations) {
+        return conversationService.updateConversationTitle(conversationId, conversations);
+    }
+
+    @DeleteMapping("/conversations/delete/{conversationId}")
+    public void deleteConversationById(@PathVariable(value = "conversationId") long conversationId) {
+        conversationService.deleteConversationById(conversationId);
     }
 
 }

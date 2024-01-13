@@ -13,16 +13,16 @@ export default function Sidebar({
   open,
   setOpen,
   setSelectedChat,
+  title,
+  setTitle,
 }) {
   const [conversations, setConversations] = useState([]);
   const [toggle, setToggle] = useState(false);
   const [active, setActive] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   const userId = localStorage.getItem("userId");
 
-  useEffect(() => {
-    // setChats(response.data);
+  const getConversations = () => {
     axios
       .get(`http://localhost:8080/conversations/user/${userId}`)
       .then((res) => {
@@ -30,9 +30,12 @@ export default function Sidebar({
           return;
         }
         setConversations(res.data);
-        console.log(conversations);
-        setIsLoading(false);
       });
+  };
+
+  useEffect(() => {
+    // setChats(response.data);
+    getConversations();
   }, [userId]);
 
   let navigate = useNavigate();
@@ -48,7 +51,6 @@ export default function Sidebar({
   };
 
   const handleNewChat = async () => {
-    setIsLoading(true);
     setSelectedChat("New Chat");
 
     try {
@@ -65,40 +67,27 @@ export default function Sidebar({
               "conversationId",
               response.data.conversationId
             );
+            setConversations([...conversations, response.data]);
+            setActive(response.data.conversationId);
             console.log(localStorage.getItem("conversationId"));
           });
-        // await axios.post("http://localhost:8080/chats", {
-        //   date: Date.now(),
-        //   recipientMessage: "",
-        //   senderMessage: "",
-        //   title: "New Chat",
-        //   userId: localStorage.getItem("userId"),
-        // });
-        setIsLoading(false);
         setPromptDisabled(false);
         setChats([]);
+      } else {
+        axios
+          .get(`http://localhost:8080/conversations/user/${userId}`)
+          .then((res) => {
+            if (res.data.length === 0) {
+              setChats(res.data);
+            }
+          });
+        setConversations(response.data);
+
+        const response = await axios.get(
+          `http://localhost:8080/chats/${userId}`
+        );
+        setConversations(response.data);
       }
-      // await axios.get("http://localhost:8080/chats").then((response) => {
-      //   setActive(response.data[response.data.length - 1].id);
-      //   localStorage.setItem(
-      //     "chatId",
-      //     response.data[response.data.length - 1].id
-      //   );
-      // });
-      // setChats(response.data);
-      axios
-        .get(`http://localhost:8080/conversations/user/${userId}`)
-        .then((res) => {
-          if (res.data.length === 0) {
-            setChats(res.data);
-            setIsLoading(false);
-          }
-        });
-
-      setConversations(response.data);
-
-      const response = await axios.get(`http://localhost:8080/chats/${userId}`);
-      setConversations(response.data);
     } catch (error) {
       console.error("Error creating or fetching chats", error);
     }
@@ -110,6 +99,7 @@ export default function Sidebar({
     );
 
     localStorage.setItem("conversationId", id);
+    localStorage.setItem("conversationTitle", selectedChat.title);
 
     setActive(id);
 
@@ -136,6 +126,75 @@ export default function Sidebar({
     }
   };
 
+  async function deleteConversation() {
+    const conversationIdToDelete = localStorage.getItem("conversationId");
+
+    await axios
+      .delete(
+        `http://localhost:8080/conversations/delete/${conversationIdToDelete}`
+      )
+      .then(() => {
+        // Filter out the deleted conversation
+        const updatedConversations = conversations.filter(
+          (conversation) =>
+            conversation.conversationId !== conversationIdToDelete
+        );
+        setConversations(updatedConversations);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    axios
+      .delete(`http://localhost:8080/chats/delete/${conversationIdToDelete}`)
+      .then((response) => {
+        console.log(response.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    getConversations();
+    setChats([]);
+    setPromptDisabled(false);
+  }
+
+  // const deleteConversation = () => {
+  //   axios
+  //     .delete(
+  //       `http://localhost:8080/conversations/delete/${localStorage.getItem(
+  //         "conversationId"
+  //       )}`
+  //     )
+  //     .then((response) => {
+  //       const updatedConversations = conversations.filter(
+  //         (conversation) =>
+  //           conversation.conversationId !==
+  //           localStorage.getItem("conversationId")
+  //       );
+  //       setConversations(updatedConversations);
+  //       console.log(response.data);
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //     });
+
+  //   axios
+  //     .delete(
+  //       `http://localhost:8080/chats/delete/${localStorage.getItem(
+  //         "conversationId"
+  //       )}`
+  //     )
+  //     .then((response) => {
+  //       console.log(response.data);
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //     });
+
+  //   getConversations();
+  // };
+
   return (
     <div className="sidebar-container">
       <div className={open ? "side-open" : "side-collapse"}>
@@ -157,56 +216,40 @@ export default function Sidebar({
             </div>
           </div>
         </div>
-        {isLoading ? (
-          <div className="sidebar-list">
-            <div className="sidebar-item-list">
-              {conversations
-                .map((conversation) => {
-                  return (
-                    <li
-                      key={conversation.conversationId}
-                      className={
-                        active === conversation.conversationId
-                          ? "side-item active"
-                          : "side-item"
-                      }
-                      onClick={() =>
-                        handleConversations(conversation.conversationId)
-                      }
-                    >
-                      {conversation.title}
-                    </li>
-                  );
-                })
-                .sort((a, b) => b.key - a.key)}
-            </div>
-          </div>
-        ) : (
-          <div className="sidebar-list">
-            <div className="sidebar-item-list">
-              {conversations
-                .map((conversation) => {
-                  return (
-                    <li
-                      key={conversation.conversationId}
-                      className={
-                        active === conversation.conversationId
-                          ? "side-item active"
-                          : "side-item"
-                      }
-                      onClick={() =>
-                        handleConversations(conversation.conversationId)
-                      }
-                    >
+        <div className="sidebar-list">
+          <div className="sidebar-item-list">
+            {conversations
+              .map((conversation) => {
+                return (
+                  <div
+                    key={conversation.conversationId}
+                    onClick={() =>
+                      handleConversations(conversation.conversationId)
+                    }
+                    className={
+                      active === conversation.conversationId
+                        ? "side-item active"
+                        : "side-item"
+                    }
+                  >
+                    <li>
                       {conversation.title[0].toUpperCase() +
                         conversation.title.slice(1)}
                     </li>
-                  );
-                })
-                .sort((a, b) => b.key - a.key)}
-            </div>
+                    <i
+                      onClick={deleteConversation}
+                      class={
+                        active === conversation.conversationId
+                          ? "fa-solid fa-trash"
+                          : ""
+                      }
+                    ></i>
+                  </div>
+                );
+              })
+              .sort((a, b) => b.key - a.key)}
           </div>
-        )}
+        </div>
         <div className="bottom-container">
           <div className="sign-out" onClick={signOut}>
             <div>Sign out</div>

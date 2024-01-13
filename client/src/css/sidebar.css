@@ -108,6 +108,8 @@
   padding: 10px;
   cursor: pointer;
   font-size: 16px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .side-item.active {
@@ -116,6 +118,11 @@
 
 .side-item:hover {
   background-color: rgb(49, 49, 49);
+}
+
+.sidebar-list .side-item i:hover {
+  transition: 50ms ease-in-out;
+  color: rgb(195, 0, 0);
 }
 
 .sidebar-container .bottom-container {

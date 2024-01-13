@@ -4,8 +4,6 @@ import axios from "axios";
 import Sidebar from "./Sidebar";
 import jsPDF from "jspdf";
 import sentences from "../data/responses.json";
-import DOMPurify from "dompurify";
-import html2canvas from "html2canvas";
 
 export default function Main() {
   const [text, setText] = useState("");
@@ -15,8 +13,9 @@ export default function Main() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [diagnosisSentence, setDiagnosisSentence] = useState("");
   const [currentResponse, setCurrentResponse] = useState("");
+  const [title, setTitle] = useState("New Chat");
 
-  const key = process.env.REACT_APP_API_KEY;
+  // const key = process.env.REACT_APP_API_KEY;
 
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
@@ -64,7 +63,7 @@ export default function Main() {
             },
           ]);
 
-          var disease = response.data.replace(/\s+/g, "-").toLowerCase();
+          // var disease = response.data.replace(/\s+/g, "-").toLowerCase();
 
           // Get NHS description of disease
           // axios
@@ -94,6 +93,7 @@ export default function Main() {
           //     console.error(error.response.data);
           //   });
 
+          // Post chats to database
           axios.post(`http://localhost:8080/chats`, {
             date: Date.now(),
             recipientMessage: newResponse,
@@ -102,6 +102,24 @@ export default function Main() {
             userId: localStorage.getItem("userId"),
             conversationId: localStorage.getItem("conversationId"),
           });
+
+          if (localStorage.getItem("conversationTitle") === "New Chat") {
+            axios
+              .put(
+                `http://localhost:8080/conversations/${localStorage.getItem(
+                  "conversationId"
+                )}`,
+                {
+                  title: response.data,
+                }
+              )
+              .then((response) => {
+                console.log(response.data);
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+          }
         });
     }
   };
@@ -121,23 +139,11 @@ export default function Main() {
     textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
   };
 
-  // Format JSON chat to PDF
-  const formatJsonForPdf = (jsonArray) => {
-    let formattedText = "";
-    jsonArray.forEach((obj) => {
-      for (let key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          formattedText += `  ${key}: ${obj[key]}\n`;
-        }
-      }
-    });
-    return formattedText;
-  };
-
+  // Export as PDF
   const downloadPdf = (chats, name) => {
     const doc = new jsPDF();
-    // Set your desired background color in RGB
-    const backgroundColor = [26, 54, 26]; // Example: light grey
+    // Set background colour
+    const backgroundColor = [26, 54, 26];
     doc.setFillColor(...backgroundColor);
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), 30, "F");
 
@@ -191,6 +197,8 @@ export default function Main() {
         setOpen={setOpen}
         selectedChat={selectedChat}
         setSelectedChat={setSelectedChat}
+        title={title}
+        setTitle={setTitle}
       />
       <div className="main-container">
         <div className="conversation-container" ref={chatContainerRef}>

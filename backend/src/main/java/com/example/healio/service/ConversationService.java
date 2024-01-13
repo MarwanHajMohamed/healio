@@ -34,4 +34,17 @@ public class ConversationService {
         return conversationRepository.save(conversations);
     }
 
+    public Conversations updateConversationTitle(long conversationId, Conversations conversations) {
+        Conversations existingConversation = conversationRepository.findById(conversationId).orElseThrow();
+        existingConversation.setTitle(conversations.getTitle());
+
+        return conversationRepository.save(existingConversation);
+    }
+
+    public void deleteConversationById(long conversationId) {
+        Conversations conversation = conversationRepository.findById(conversationId)
+                .orElseThrow();
+        conversationRepository.delete(conversation);
+    }
+
 }

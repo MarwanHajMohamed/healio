@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,6 +56,11 @@ public class ChatsController {
     @PutMapping("/chats/{chatId}")
     public Chats updateChatByChatId(@PathVariable long chatId, @RequestBody Chats chat) {
         return chatsService.updateChatByChatId(chatId, chat);
+    }
+
+    @DeleteMapping("/chats/delete/{conversationId}")
+    public void deleteChatsByConversationId(@PathVariable(value = "conversationId") long conversationId) {
+        chatsService.deleteChatsByConversationId(conversationId);
     }
 
 }

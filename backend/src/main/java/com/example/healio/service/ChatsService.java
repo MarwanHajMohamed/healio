@@ -45,4 +45,9 @@ public class ChatsService {
         return chatsRepository.save(existingChat);
     }
 
+    public void deleteChatsByConversationId(long conversationId) {
+        List<Chats> chats = chatsRepository.findByConversationId(conversationId);
+        chatsRepository.deleteAll(chats);
+    }
+
 }
