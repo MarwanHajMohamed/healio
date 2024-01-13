@@ -22,8 +22,8 @@ export default function Sidebar({
 
   const userId = localStorage.getItem("userId");
 
-  const getConversations = () => {
-    axios
+  async function getConversations() {
+    await axios
       .get(`http://localhost:8080/conversations/user/${userId}`)
       .then((res) => {
         if (res.data.length === []) {
@@ -31,7 +31,7 @@ export default function Sidebar({
         }
         setConversations(res.data);
       });
-  };
+  }
 
   useEffect(() => {
     // setChats(response.data);
@@ -56,6 +56,7 @@ export default function Sidebar({
     try {
       const lastChat = conversations.find((chat) => chat.title === "New Chat");
       if (!lastChat) {
+        localStorage.setItem("conversationTitle", "New Chat");
         // Store new conversation
         await axios
           .post(`http://localhost:8080/conversations`, {
@@ -73,20 +74,38 @@ export default function Sidebar({
           });
         setPromptDisabled(false);
         setChats([]);
-      } else {
-        axios
-          .get(`http://localhost:8080/conversations/user/${userId}`)
-          .then((res) => {
-            if (res.data.length === 0) {
-              setChats(res.data);
-            }
+      } else if (lastChat && chats.length !== 0) {
+        getConversations();
+        // Store new conversation
+        await axios
+          .post(`http://localhost:8080/conversations`, {
+            title: "New Chat",
+            userId: userId,
+          })
+          .then((response) => {
+            localStorage.setItem(
+              "conversationId",
+              response.data.conversationId
+            );
+            setConversations([...conversations, response.data]);
+            setActive(response.data.conversationId);
+            console.log(localStorage.getItem("conversationId"));
           });
-        setConversations(response.data);
-
-        const response = await axios.get(
-          `http://localhost:8080/chats/${userId}`
-        );
-        setConversations(response.data);
+        getConversations();
+        setPromptDisabled(false);
+        setChats([]);
+        // axios
+        //   .get(`http://localhost:8080/conversations/user/${userId}`)
+        //   .then((res) => {
+        //     if (res.data.length === 0) {
+        //       setChats(res.data);
+        //     }
+        //   });
+        // setConversations(response.data);
+        // const response = await axios.get(
+        //   `http://localhost:8080/chats/${userId}`
+        // );
+        // setConversations(response.data);
       }
     } catch (error) {
       console.error("Error creating or fetching chats", error);

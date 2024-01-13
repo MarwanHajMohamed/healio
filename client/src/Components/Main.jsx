@@ -104,21 +104,14 @@ export default function Main() {
           });
 
           if (localStorage.getItem("conversationTitle") === "New Chat") {
-            axios
-              .put(
-                `http://localhost:8080/conversations/${localStorage.getItem(
-                  "conversationId"
-                )}`,
-                {
-                  title: response.data,
-                }
-              )
-              .then((response) => {
-                console.log(response.data);
-              })
-              .catch((error) => {
-                console.log(error);
-              });
+            axios.put(
+              `http://localhost:8080/conversations/${localStorage.getItem(
+                "conversationId"
+              )}`,
+              {
+                title: response.data,
+              }
+            );
           }
         });
     }
@@ -255,9 +248,11 @@ export default function Main() {
 
           <div className="options-container">
             {chats.length === 0 ? (
-              <i class="fa-solid fa-file-export disabled"></i>
+              // <i class="fa-solid fa-file-export disabled"></i>
+              <i class="fa-solid fa-download disabled"></i>
             ) : (
-              <i class="fa-solid fa-file-export" onClick={handleExport}></i>
+              // <i class="fa-solid fa-file-export" onClick={handleExport}></i>
+              <i class="fa-solid fa-download" onClick={handleExport}></i>
             )}
           </div>
         </div>

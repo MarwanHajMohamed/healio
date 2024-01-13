@@ -110,12 +110,12 @@
 }
 
 .main-container .user-prompt-container .options-container i.disabled {
-  color: rgb(171, 171, 171);
+  color: rgb(95, 95, 95);
   cursor: default;
 }
 
 .main-container .user-prompt-container .options-container i:hover.disabled {
-  color: rgb(171, 171, 171);
+  color: rgb(95, 95, 95);
 }
 
 .main-container .user-prompt-container .options-container i {
@@ -125,7 +125,7 @@
 }
 
 .main-container .user-prompt-container .options-container i:hover {
-  color: rgb(42, 52, 244);
+  color: rgb(202, 202, 202);
 }
 
 #blinker {
