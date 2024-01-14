@@ -94,6 +94,7 @@ export default function Sidebar({
         getConversations();
         setPromptDisabled(false);
         setChats([]);
+
         // axios
         //   .get(`http://localhost:8080/conversations/user/${userId}`)
         //   .then((res) => {

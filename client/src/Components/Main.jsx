@@ -11,11 +11,10 @@ export default function Main() {
   const [promptDisabled, setPromptDisabled] = useState(false);
   const [open, setOpen] = useState(true);
   const [selectedChat, setSelectedChat] = useState(null);
-  const [diagnosisSentence, setDiagnosisSentence] = useState("");
-  const [currentResponse, setCurrentResponse] = useState("");
   const [title, setTitle] = useState("New Chat");
+  const [description, setDescription] = useState("");
 
-  // const key = process.env.REACT_APP_API_KEY;
+  const key = process.env.REACT_APP_API_KEY;
 
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
@@ -31,89 +30,178 @@ export default function Main() {
   }, []);
 
   // Handles storing chats to database and making prediction of disease
-  const handlePrompts = (e) => {
+  // const handlePrompts = async (e) => {
+  //   e.preventDefault();
+  //   if (e.target.value === "") {
+  //   } else {
+  //     setText("");
+  //     textareaRef.current.style.height = "33px";
+
+  //     // Predict disease using model
+  //     axios
+  //       .post("http://127.0.0.1:5000/predict", { data: e.target.value })
+  //       .then((response) => {
+  //         const randomIndex = Math.floor(
+  //           Math.random() * sentences.diagnosis_starter.length
+  //         );
+  //         console.log(response.data);
+
+  //         var disease = response.data.replace(/\s+/g, "-").toLowerCase();
+
+  //         // Get NHS description of disease
+  //         axios
+  //           .get(`https://api.nhs.uk/conditions/${disease}`, {
+  //             headers: {
+  //               "subscription-key": key,
+  //             },
+  //           })
+  //           .then((response) => {
+  //             console.log(response.data.hasPart[0].hasPart[0].text);
+  //             setDescription(response.data.hasPart[0].hasPart[0].text);
+  //           });
+
+  //         const newDiagnosisSentence =
+  //           sentences.diagnosis_starter[randomIndex].message;
+
+  //         var newResponse =
+  //           newDiagnosisSentence + "<b>" + response.data + "</b>" + description;
+
+  //         setChats([
+  //           ...chats,
+  //           {
+  //             prompt: JSON.parse(response.config.data)["data"],
+  //             response: newResponse,
+  //           },
+  //         ]);
+
+  //         // Store in database
+  //         // axios
+  //         //   .put(
+  //         //     `http://localhost:8080/chats/${localStorage.getItem("chatId")}`,
+  //         //     {
+  //         //       date: Date.now(),
+  //         //       recipientMessage: newResponse,
+  //         //       senderMessage: JSON.parse(response.config.data)["data"],
+  //         //       title: response.data,
+  //         //       userId: localStorage.getItem("userId"),
+  //         //     }
+  //         //   )
+  //         //   .catch((error) => {
+  //         //     console.error(error.response.data);
+  //         //   });
+
+  //         // Post chats to database
+  //         axios.post(`http://localhost:8080/chats`, {
+  //           date: Date.now(),
+  //           recipientMessage: newResponse,
+  //           senderMessage: JSON.parse(response.config.data)["data"],
+  //           title: response.data,
+  //           userId: localStorage.getItem("userId"),
+  //           conversationId: localStorage.getItem("conversationId"),
+  //         });
+
+  //         if (localStorage.getItem("conversationTitle") === "New Chat") {
+  //           axios.put(
+  //             `http://localhost:8080/conversations/${localStorage.getItem(
+  //               "conversationId"
+  //             )}`,
+  //             {
+  //               title: response.data,
+  //             }
+  //           );
+  //         }
+  //       });
+  //   }
+  // };
+
+  const handlePrompts = async (e) => {
     e.preventDefault();
     if (e.target.value === "") {
-    } else {
-      setText("");
-      textareaRef.current.style.height = "33px";
+      // Handle empty prompt
+      return;
+    }
 
+    setText("");
+    textareaRef.current.style.height = "33px";
+
+    try {
       // Predict disease using model
-      axios
-        .post("http://127.0.0.1:5000/predict", { data: e.target.value })
-        .then((response) => {
-          const randomIndex = Math.floor(
-            Math.random() * sentences.diagnosis_starter.length
-          );
-          console.log(response.data);
+      const predictionResponse = await axios.post(
+        "http://127.0.0.1:5000/predict",
+        { data: e.target.value }
+      );
+      console.log(predictionResponse.data);
+      var disease = predictionResponse.data.replace(/\s+/g, "-").toLowerCase();
 
-          const newDiagnosisSentence =
-            sentences.diagnosis_starter[randomIndex].message;
-          setDiagnosisSentence(newDiagnosisSentence);
-
-          var newResponse =
-            newDiagnosisSentence + "<b>" + response.data + "</b>";
-          setCurrentResponse(newResponse);
-
+      // Get NHS description of disease
+      const nhsResponse = await axios
+        .get(`https://api.nhs.uk/conditions/${disease}`, {
+          headers: {
+            "subscription-key": key,
+          },
+        })
+        .catch((error) => {
           setChats([
             ...chats,
             {
-              prompt: JSON.parse(response.config.data)["data"],
-              response: newResponse,
+              prompt: JSON.parse(predictionResponse.config.data)["data"],
+              response: "An error occured. Please try again later",
             },
           ]);
-
-          // var disease = response.data.replace(/\s+/g, "-").toLowerCase();
-
-          // Get NHS description of disease
-          // axios
-          //   .get(`https://api.nhs.uk/conditions/${disease}`, {
-          //     headers: {
-          //       "subscription-key": key,
-          //     },
-          //   })
-          //   .then((response) => {
-          //     // console.log(response.data);
-          //     // setDescription(response.data.description);
-          //   });
-
-          // Store in database
-          // axios
-          //   .put(
-          //     `http://localhost:8080/chats/${localStorage.getItem("chatId")}`,
-          //     {
-          //       date: Date.now(),
-          //       recipientMessage: newResponse,
-          //       senderMessage: JSON.parse(response.config.data)["data"],
-          //       title: response.data,
-          //       userId: localStorage.getItem("userId"),
-          //     }
-          //   )
-          //   .catch((error) => {
-          //     console.error(error.response.data);
-          //   });
-
-          // Post chats to database
-          axios.post(`http://localhost:8080/chats`, {
-            date: Date.now(),
-            recipientMessage: newResponse,
-            senderMessage: JSON.parse(response.config.data)["data"],
-            title: response.data,
-            userId: localStorage.getItem("userId"),
-            conversationId: localStorage.getItem("conversationId"),
-          });
-
-          if (localStorage.getItem("conversationTitle") === "New Chat") {
-            axios.put(
-              `http://localhost:8080/conversations/${localStorage.getItem(
-                "conversationId"
-              )}`,
-              {
-                title: response.data,
-              }
-            );
-          }
         });
+
+      const diseaseDescription = nhsResponse.data.hasPart[0].hasPart[0].text;
+      const diseaseMedicine = nhsResponse.data.hasPart[1].hasPart[0].text;
+      setDescription(diseaseDescription);
+
+      const randomIndex = Math.floor(
+        Math.random() * sentences.diagnosis_starter.length
+      );
+      const newDiagnosisSentence =
+        sentences.diagnosis_starter[randomIndex].message;
+      var newResponse =
+        newDiagnosisSentence +
+        "<b>" +
+        predictionResponse.data +
+        "</b>" +
+        diseaseDescription +
+        diseaseMedicine;
+
+      const newChat = {
+        prompt: JSON.parse(predictionResponse.config.data)["data"],
+        response: newResponse,
+      };
+
+      setChats([
+        ...chats,
+        {
+          prompt: JSON.parse(predictionResponse.config.data)["data"],
+          response: newResponse,
+        },
+      ]);
+
+      // Post chats to database
+      await axios.post(`http://localhost:8080/chats`, {
+        date: Date.now(),
+        recipientMessage: newResponse,
+        senderMessage: newChat.prompt,
+        title: predictionResponse.data,
+        userId: localStorage.getItem("userId"),
+        conversationId: localStorage.getItem("conversationId"),
+      });
+
+      if (localStorage.getItem("conversationTitle") === "New Chat") {
+        await axios.put(
+          `http://localhost:8080/conversations/${localStorage.getItem(
+            "conversationId"
+          )}`,
+          {
+            title: predictionResponse.data,
+          }
+        );
+      }
+    } catch (error) {
+      console.error("Error in handlePrompts:", error);
     }
   };
 

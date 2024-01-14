@@ -56,6 +56,10 @@
   line-height: 25px;
 }
 
+.main-container .prompt-container .prompt a {
+  color: white;
+}
+
 .main-container .prompt-container .prompt-title {
   font-size: 20px;
   font-weight: 700;
