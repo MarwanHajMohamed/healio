@@ -12,7 +12,6 @@ export default function Main() {
   const [open, setOpen] = useState(true);
   const [selectedChat, setSelectedChat] = useState(null);
   const [title, setTitle] = useState("New Chat");
-  const [description, setDescription] = useState("");
 
   const key = process.env.REACT_APP_API_KEY;
 
@@ -27,92 +26,7 @@ export default function Main() {
         block: "end",
       });
     }
-  }, []);
-
-  // Handles storing chats to database and making prediction of disease
-  // const handlePrompts = async (e) => {
-  //   e.preventDefault();
-  //   if (e.target.value === "") {
-  //   } else {
-  //     setText("");
-  //     textareaRef.current.style.height = "33px";
-
-  //     // Predict disease using model
-  //     axios
-  //       .post("http://127.0.0.1:5000/predict", { data: e.target.value })
-  //       .then((response) => {
-  //         const randomIndex = Math.floor(
-  //           Math.random() * sentences.diagnosis_starter.length
-  //         );
-  //         console.log(response.data);
-
-  //         var disease = response.data.replace(/\s+/g, "-").toLowerCase();
-
-  //         // Get NHS description of disease
-  //         axios
-  //           .get(`https://api.nhs.uk/conditions/${disease}`, {
-  //             headers: {
-  //               "subscription-key": key,
-  //             },
-  //           })
-  //           .then((response) => {
-  //             console.log(response.data.hasPart[0].hasPart[0].text);
-  //             setDescription(response.data.hasPart[0].hasPart[0].text);
-  //           });
-
-  //         const newDiagnosisSentence =
-  //           sentences.diagnosis_starter[randomIndex].message;
-
-  //         var newResponse =
-  //           newDiagnosisSentence + "<b>" + response.data + "</b>" + description;
-
-  //         setChats([
-  //           ...chats,
-  //           {
-  //             prompt: JSON.parse(response.config.data)["data"],
-  //             response: newResponse,
-  //           },
-  //         ]);
-
-  //         // Store in database
-  //         // axios
-  //         //   .put(
-  //         //     `http://localhost:8080/chats/${localStorage.getItem("chatId")}`,
-  //         //     {
-  //         //       date: Date.now(),
-  //         //       recipientMessage: newResponse,
-  //         //       senderMessage: JSON.parse(response.config.data)["data"],
-  //         //       title: response.data,
-  //         //       userId: localStorage.getItem("userId"),
-  //         //     }
-  //         //   )
-  //         //   .catch((error) => {
-  //         //     console.error(error.response.data);
-  //         //   });
-
-  //         // Post chats to database
-  //         axios.post(`http://localhost:8080/chats`, {
-  //           date: Date.now(),
-  //           recipientMessage: newResponse,
-  //           senderMessage: JSON.parse(response.config.data)["data"],
-  //           title: response.data,
-  //           userId: localStorage.getItem("userId"),
-  //           conversationId: localStorage.getItem("conversationId"),
-  //         });
-
-  //         if (localStorage.getItem("conversationTitle") === "New Chat") {
-  //           axios.put(
-  //             `http://localhost:8080/conversations/${localStorage.getItem(
-  //               "conversationId"
-  //             )}`,
-  //             {
-  //               title: response.data,
-  //             }
-  //           );
-  //         }
-  //       });
-  //   }
-  // };
+  }, [chats.length]);
 
   const handlePrompts = async (e) => {
     e.preventDefault();
@@ -140,7 +54,7 @@ export default function Main() {
             "subscription-key": key,
           },
         })
-        .catch((error) => {
+        .catch(() => {
           setChats([
             ...chats,
             {
@@ -152,7 +66,6 @@ export default function Main() {
 
       const diseaseDescription = nhsResponse.data.hasPart[0].hasPart[0].text;
       const diseaseMedicine = nhsResponse.data.hasPart[1].hasPart[0].text;
-      setDescription(diseaseDescription);
 
       const randomIndex = Math.floor(
         Math.random() * sentences.diagnosis_starter.length

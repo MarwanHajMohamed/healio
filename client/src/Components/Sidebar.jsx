@@ -36,7 +36,7 @@ export default function Sidebar({
   useEffect(() => {
     // setChats(response.data);
     getConversations();
-  }, [userId]);
+  });
 
   let navigate = useNavigate();
 
