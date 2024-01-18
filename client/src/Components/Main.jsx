@@ -44,8 +44,12 @@ export default function Main() {
         "http://127.0.0.1:5000/predict",
         { data: e.target.value }
       );
-      console.log(predictionResponse.data);
-      var disease = predictionResponse.data.replace(/\s+/g, "-").toLowerCase();
+      console.log("Disease prediction: ", predictionResponse.data.disease);
+      console.log("Confidence: ", predictionResponse.data.confidence);
+      var confidence = predictionResponse.data.confidence;
+      var disease = predictionResponse.data.disease
+        .replace(/\s+/g, "-")
+        .toLowerCase();
 
       // Get NHS description of disease
       const nhsResponse = await axios
@@ -59,7 +63,7 @@ export default function Main() {
             ...chats,
             {
               prompt: JSON.parse(predictionResponse.config.data)["data"],
-              response: "An error occured. Please try again later",
+              response: "An errosr occured. Please try again later",
             },
           ]);
         });
@@ -70,48 +74,52 @@ export default function Main() {
       const randomIndex = Math.floor(
         Math.random() * sentences.diagnosis_starter.length
       );
-      const newDiagnosisSentence =
-        sentences.diagnosis_starter[randomIndex].message;
-      var newResponse =
-        newDiagnosisSentence +
-        "<b>" +
-        predictionResponse.data +
-        "</b>" +
-        diseaseDescription +
-        diseaseMedicine;
 
-      const newChat = {
-        prompt: JSON.parse(predictionResponse.config.data)["data"],
-        response: newResponse,
-      };
+      if (confidence >= 1) {
+      } else {
+        const newDiagnosisSentence =
+          sentences.diagnosis_starter[randomIndex].message;
+        var newResponse =
+          newDiagnosisSentence +
+          "<b>" +
+          predictionResponse.data +
+          "</b>" +
+          diseaseDescription +
+          diseaseMedicine;
 
-      setChats([
-        ...chats,
-        {
+        const newChat = {
           prompt: JSON.parse(predictionResponse.config.data)["data"],
           response: newResponse,
-        },
-      ]);
+        };
 
-      // Post chats to database
-      await axios.post(`http://localhost:8080/chats`, {
-        date: Date.now(),
-        recipientMessage: newResponse,
-        senderMessage: newChat.prompt,
-        title: predictionResponse.data,
-        userId: localStorage.getItem("userId"),
-        conversationId: localStorage.getItem("conversationId"),
-      });
-
-      if (localStorage.getItem("conversationTitle") === "New Chat") {
-        await axios.put(
-          `http://localhost:8080/conversations/${localStorage.getItem(
-            "conversationId"
-          )}`,
+        setChats([
+          ...chats,
           {
-            title: predictionResponse.data,
-          }
-        );
+            prompt: JSON.parse(predictionResponse.config.data)["data"],
+            response: newResponse,
+          },
+        ]);
+
+        // Post chats to database
+        await axios.post(`http://localhost:8080/chats`, {
+          date: Date.now(),
+          recipientMessage: newResponse,
+          senderMessage: newChat.prompt,
+          title: predictionResponse.data.disease,
+          userId: localStorage.getItem("userId"),
+          conversationId: localStorage.getItem("conversationId"),
+        });
+
+        if (localStorage.getItem("conversationTitle") === "New Chat") {
+          await axios.put(
+            `http://localhost:8080/conversations/${localStorage.getItem(
+              "conversationId"
+            )}`,
+            {
+              title: predictionResponse.data.disease,
+            }
+          );
+        }
       }
     } catch (error) {
       console.error("Error in handlePrompts:", error);
