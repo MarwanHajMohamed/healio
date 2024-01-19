@@ -12,5 +12,19 @@
             "id": 3,
             "message": "The symptoms you're experiencing often align with "
         }
+    ],
+    "error": [
+        {
+            "id": 1,
+            "message": "Sorry, I do not understand your question."
+        },
+        {
+            "id": 2,
+            "message": "Please ask a question related to your symptoms."
+        },
+        {
+            "id": 3,
+            "message": "I am an AI model that answers questions related to your symptoms. Please provide me with the symptoms you are experiencing."
+        }
     ]
 }

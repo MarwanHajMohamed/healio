@@ -4,6 +4,7 @@ import axios from "axios";
 import Sidebar from "./Sidebar";
 import jsPDF from "jspdf";
 import sentences from "../data/responses.json";
+import OpenAI from "openai";
 
 export default function Main() {
   const [text, setText] = useState("");
@@ -14,6 +15,12 @@ export default function Main() {
   const [title, setTitle] = useState("New Chat");
 
   const key = process.env.REACT_APP_API_KEY;
+  const openAiKey = process.env.REACT_APP_OPENAI_API_KEY;
+
+  const openai = new OpenAI({
+    apiKey: openAiKey,
+    dangerouslyAllowBrowser: true,
+  });
 
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
@@ -63,7 +70,7 @@ export default function Main() {
             ...chats,
             {
               prompt: JSON.parse(predictionResponse.config.data)["data"],
-              response: "An errosr occured. Please try again later",
+              response: "An error occured. Please try again later",
             },
           ]);
         });
@@ -71,18 +78,38 @@ export default function Main() {
       const diseaseDescription = nhsResponse.data.hasPart[0].hasPart[0].text;
       const diseaseMedicine = nhsResponse.data.hasPart[1].hasPart[0].text;
 
-      const randomIndex = Math.floor(
-        Math.random() * sentences.diagnosis_starter.length
-      );
+      const randomIndex = (option) =>
+        Math.floor(Math.random() * sentences[option].length);
 
       if (confidence >= 1) {
+        // const completion = await openai.chat.completions.create({
+        //   messages: [{ role: "user", content: e.target.value }],
+        //   max_tokens: 60,
+        //   model: "gpt-3.5-turbo",
+        // });
+        // console.log(completion.choices[0]);
+        // setChats([
+        //   ...chats,
+        //   {
+        //     prompt: JSON.parse(predictionResponse.config.data)["data"],
+        //     response: completion.choices[0].message.content,
+        //   },
+        // ]);
+        const errorMessage = sentences.error[randomIndex("error")].message;
+        setChats([
+          ...chats,
+          {
+            prompt: JSON.parse(predictionResponse.config.data)["data"],
+            response: errorMessage,
+          },
+        ]);
       } else {
         const newDiagnosisSentence =
-          sentences.diagnosis_starter[randomIndex].message;
+          sentences.diagnosis_starter[randomIndex("diagnosis_starter")].message;
         var newResponse =
           newDiagnosisSentence +
           "<b>" +
-          predictionResponse.data +
+          predictionResponse.data.disease +
           "</b>" +
           diseaseDescription +
           diseaseMedicine;
