@@ -13,30 +13,17 @@ export default function Sidebar({
   open,
   setOpen,
   setSelectedChat,
-  title,
-  setTitle,
+  conversations,
+  setConversations,
+  getConversations,
 }) {
-  const [conversations, setConversations] = useState([]);
   const [toggle, setToggle] = useState(false);
   const [active, setActive] = useState(null);
-
   const userId = localStorage.getItem("userId");
 
-  async function getConversations() {
-    await axios
-      .get(`http://localhost:8080/conversations/user/${userId}`)
-      .then((res) => {
-        if (res.data.length === []) {
-          return;
-        }
-        setConversations(res.data);
-      });
-  }
-
   useEffect(() => {
-    // setChats(response.data);
     getConversations();
-  });
+  }, []);
 
   let navigate = useNavigate();
 
@@ -70,7 +57,6 @@ export default function Sidebar({
             );
             setConversations([...conversations, response.data]);
             setActive(response.data.conversationId);
-            console.log(localStorage.getItem("conversationId"));
           });
         setPromptDisabled(false);
         setChats([]);
@@ -94,19 +80,6 @@ export default function Sidebar({
         getConversations();
         setPromptDisabled(false);
         setChats([]);
-
-        // axios
-        //   .get(`http://localhost:8080/conversations/user/${userId}`)
-        //   .then((res) => {
-        //     if (res.data.length === 0) {
-        //       setChats(res.data);
-        //     }
-        //   });
-        // setConversations(response.data);
-        // const response = await axios.get(
-        //   `http://localhost:8080/chats/${userId}`
-        // );
-        // setConversations(response.data);
       }
     } catch (error) {
       console.error("Error creating or fetching chats", error);
@@ -178,42 +151,6 @@ export default function Sidebar({
     setChats([]);
     setPromptDisabled(false);
   }
-
-  // const deleteConversation = () => {
-  //   axios
-  //     .delete(
-  //       `http://localhost:8080/conversations/delete/${localStorage.getItem(
-  //         "conversationId"
-  //       )}`
-  //     )
-  //     .then((response) => {
-  //       const updatedConversations = conversations.filter(
-  //         (conversation) =>
-  //           conversation.conversationId !==
-  //           localStorage.getItem("conversationId")
-  //       );
-  //       setConversations(updatedConversations);
-  //       console.log(response.data);
-  //     })
-  //     .catch((err) => {
-  //       console.log(err);
-  //     });
-
-  //   axios
-  //     .delete(
-  //       `http://localhost:8080/chats/delete/${localStorage.getItem(
-  //         "conversationId"
-  //       )}`
-  //     )
-  //     .then((response) => {
-  //       console.log(response.data);
-  //     })
-  //     .catch((err) => {
-  //       console.log(err);
-  //     });
-
-  //   getConversations();
-  // };
 
   return (
     <div className="sidebar-container">

@@ -13,6 +13,7 @@ export default function Main() {
   const [open, setOpen] = useState(true);
   const [selectedChat, setSelectedChat] = useState(null);
   const [title, setTitle] = useState("New Chat");
+  const [conversations, setConversations] = useState([]);
 
   const key = process.env.REACT_APP_API_KEY;
   const openAiKey = process.env.REACT_APP_OPENAI_API_KEY;
@@ -25,6 +26,7 @@ export default function Main() {
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
   const chatContainerRef = useRef(null);
+  const userId = localStorage.getItem("userId");
 
   useEffect(() => {
     if (chats.length) {
@@ -34,6 +36,39 @@ export default function Main() {
       });
     }
   }, [chats.length]);
+
+  async function getConversations() {
+    await axios
+      .get(`http://localhost:8080/conversations/user/${userId}`)
+      .then((res) => {
+        if (res.data.length === []) {
+          return;
+        }
+        setConversations(res.data);
+      });
+  }
+
+  // Buttons to expand answer
+  const handleOptions = (option, chatIndex) => {
+    setChats(
+      chats.map((chat, index) => {
+        if (index === chatIndex) {
+          return {
+            ...chat,
+            showSymptoms:
+              option === 0
+                ? !chat.response.showSymptoms
+                : chat.response.showSymptoms,
+            showMedicine:
+              option === 1
+                ? !chat.response.showMedicine
+                : chat.response.showMedicine,
+          };
+        }
+        return chat;
+      })
+    );
+  };
 
   const handlePrompts = async (e) => {
     e.preventDefault();
@@ -57,7 +92,7 @@ export default function Main() {
       var disease = predictionResponse.data.disease
         .replace(/\s+/g, "-")
         .toLowerCase();
-
+      getConversations();
       // Get NHS description of disease
       const nhsResponse = await axios
         .get(`https://api.nhs.uk/conditions/${disease}`, {
@@ -104,10 +139,16 @@ export default function Main() {
           },
         ]);
       } else {
-        const newDiagnosisSentence =
+        const diagnosisStarter =
           sentences.diagnosis_starter[randomIndex("diagnosis_starter")].message;
+
         var newResponse =
-          newDiagnosisSentence +
+          diagnosisStarter + "<b>" + predictionResponse.data.disease;
+
+        console.log(newResponse);
+
+        var databaseResponse =
+          diagnosisStarter +
           "<b>" +
           predictionResponse.data.disease +
           "</b>" +
@@ -117,20 +158,24 @@ export default function Main() {
         const newChat = {
           prompt: JSON.parse(predictionResponse.config.data)["data"],
           response: newResponse,
+          showSymptoms: false,
+          showMedicine: false,
+          diseaseDescription: diseaseDescription,
+          diseaseMedicine: diseaseMedicine,
         };
 
         setChats([
           ...chats,
           {
             prompt: JSON.parse(predictionResponse.config.data)["data"],
-            response: newResponse,
+            response: newChat,
           },
         ]);
 
         // Post chats to database
         await axios.post(`http://localhost:8080/chats`, {
           date: Date.now(),
-          recipientMessage: newResponse,
+          recipientMessage: databaseResponse,
           senderMessage: newChat.prompt,
           title: predictionResponse.data.disease,
           userId: localStorage.getItem("userId"),
@@ -228,6 +273,9 @@ export default function Main() {
         setSelectedChat={setSelectedChat}
         title={title}
         setTitle={setTitle}
+        conversations={conversations}
+        setConversations={setConversations}
+        getConversations={getConversations}
       />
       <div className="main-container">
         <div className="conversation-container" ref={chatContainerRef}>
@@ -239,7 +287,7 @@ export default function Main() {
                 </div>
               </div>
             ) : (
-              chats.map((chat) => {
+              chats.map((chat, index) => {
                 return (
                   <div
                     className={open ? "chat-container open" : "chat-container"}
@@ -251,11 +299,57 @@ export default function Main() {
                     </div>
                     <div className="prompt-container">
                       <div className="prompt-title healio">Healio</div>
+                      {promptDisabled ? (
+                        <div
+                          className="prompt"
+                          id="prompt"
+                          dangerouslySetInnerHTML={{
+                            __html: chat.response,
+                          }}
+                        />
+                      ) : (
+                        <div
+                          className="prompt"
+                          id="prompt"
+                          dangerouslySetInnerHTML={{
+                            __html: chat.response.response,
+                          }}
+                        />
+                      )}
                       <div
-                        className="prompt"
-                        id="prompt"
-                        dangerouslySetInnerHTML={{ __html: chat.response }}
-                      />
+                        className={
+                          promptDisabled
+                            ? "buttons-container disabled"
+                            : "buttons-container"
+                        }
+                      >
+                        <button
+                          onClick={() => {
+                            handleOptions(0, index);
+                          }}
+                        >
+                          Symptoms
+                        </button>
+                        <button onClick={() => handleOptions(1, index)}>
+                          Medicine
+                        </button>
+                      </div>
+                      {chat.showSymptoms && (
+                        <div
+                          className="response-content"
+                          dangerouslySetInnerHTML={{
+                            __html: chat.response.diseaseDescription,
+                          }}
+                        />
+                      )}
+                      {chat.showMedicine && (
+                        <div
+                          className="response-content"
+                          dangerouslySetInnerHTML={{
+                            __html: chat.response.diseaseMedicine,
+                          }}
+                        />
+                      )}
                     </div>
                   </div>
                 );
