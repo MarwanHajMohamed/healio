@@ -1,12 +1,13 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import "../css/main.css";
 import axios from "axios";
 import Sidebar from "./Sidebar";
 import sentences from "../data/responses.json";
-import OpenAI from "openai";
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+// import OpenAI from "openai";
+import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import { postChat } from "../functions/PostChat";
 import { downloadPdf } from "../functions/pdfGenerator";
+import Logo from "../css/assets/Healio Logo.png";
 
 export default function Main() {
   const [text, setText] = useState("");
@@ -19,9 +20,10 @@ export default function Main() {
   const [currentLocation, setCurrentLocation] = useState({ lat: 0, lng: 0 });
   const [pharmacies, setPharmacies] = useState([]);
   const [pharmacyDetails, setPharmacyDetails] = useState([]);
+  const [mapLoading, setMapLoading] = useState(false);
 
   const key = process.env.REACT_APP_API_KEY;
-  const openAiKey = process.env.REACT_APP_OPENAI_API_KEY;
+  // const openAiKey = process.env.REACT_APP_OPENAI_API_KEY;
   const mapKey = process.env.REACT_APP_MAPS_API;
 
   // const openai = new OpenAI({
@@ -56,18 +58,19 @@ export default function Main() {
   }
 
   const updateLocationAndFetchPharmacies = () => {
+    setMapLoading(true);
     navigator.geolocation.getCurrentPosition((position) => {
       const newLocation = {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       };
-      console.log("New location: " + JSON.stringify(newLocation));
       setCurrentLocation(newLocation); // Update location
       fetchPharmacies(newLocation); // Fetch pharmacies with new location
     });
   };
 
   const fetchPharmacies = async (location) => {
+    setMapLoading(true);
     try {
       axios
         .get("http://localhost:8080/pharmacies", {
@@ -82,6 +85,9 @@ export default function Main() {
         })
         .catch((error) => {
           console.log(error);
+        })
+        .finally(() => {
+          setMapLoading(false);
         });
       // const response = await fetch(url);
       // if (!response.ok) {
@@ -95,6 +101,11 @@ export default function Main() {
     }
   };
 
+  const { isLoaded } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: mapKey,
+  });
+
   // Buttons to expand answer
   const handleOptions = (option, chatIndex) => {
     setChats(
@@ -105,11 +116,11 @@ export default function Main() {
             showSymptoms:
               option === 0
                 ? !chat.response.showSymptoms
-                : chat.response.showSymptoms,
+                : (chat.response.showSymptoms, setPharmacies([])),
             showMedicine:
               option === 1
                 ? !chat.response.showMedicine
-                : chat.response.showMedicine,
+                : (chat.response.showMedicine, setPharmacies([])),
             showPharmacy:
               option === 2
                 ? (updateLocationAndFetchPharmacies(),
@@ -306,11 +317,17 @@ export default function Main() {
                     ref={ref}
                   >
                     <div className="prompt-container">
-                      <div className="prompt-title">You</div>
+                      <div className="account-container">
+                        <div className="account">M</div>
+                        <div className="prompt-title">You</div>
+                      </div>
                       <div className="prompt">{chat.prompt}</div>
                     </div>
                     <div className="prompt-container">
-                      <div className="prompt-title healio">Healio</div>
+                      <div className="account-container">
+                        <img src={Logo} alt="" />
+                        <div className="prompt-title healio">Healio</div>
+                      </div>
                       {promptDisabled ? (
                         <div
                           className="prompt"
@@ -367,34 +384,37 @@ export default function Main() {
                       )}
                       {chat.showPharmacy && (
                         <>
-                          <LoadScript googleMapsApiKey={mapKey}>
-                            <GoogleMap
-                              mapContainerStyle={{
-                                width: "100%",
-                                height: "400px",
-                                marginTop: 20,
-                                borderRadius: 15,
-                                boxShadow: "0 5px 5px rgb(0, 0, 0, 1)",
-                              }}
-                              center={currentLocation}
-                              zoom={12}
-                            >
-                              {pharmacies.map((pharmacy) => (
-                                <Marker
-                                  key={pharmacy.id}
-                                  position={pharmacy.geometry.location}
-                                  onClick={() => {
-                                    setPharmacyDetails({
-                                      name: pharmacy.name,
-                                      postcode: pharmacy.vicinity,
-                                      open: pharmacy.opening_hours,
-                                    });
-                                  }}
-                                />
-                              ))}
-                            </GoogleMap>
-                          </LoadScript>
-                          {pharmacyDetails !== "" ? (
+                          <GoogleMap
+                            mapContainerStyle={{
+                              width: "100%",
+                              height: "400px",
+                              marginTop: 20,
+                              borderRadius: 15,
+                              boxShadow: "0 5px 5px rgb(0, 0, 0, 1)",
+                            }}
+                            center={currentLocation}
+                            zoom={12}
+                          >
+                            {mapLoading && (
+                              <div className="loading-markers">
+                                Loading pharmacies...
+                              </div>
+                            )}
+                            {pharmacies.map((pharmacy) => (
+                              <Marker
+                                key={pharmacy.id}
+                                position={pharmacy.geometry.location}
+                                onClick={() => {
+                                  setPharmacyDetails({
+                                    name: pharmacy.name,
+                                    postcode: pharmacy.vicinity,
+                                    open: pharmacy.opening_hours,
+                                  });
+                                }}
+                              />
+                            ))}
+                          </GoogleMap>
+                          {pharmacyDetails.length > 0 ? (
                             <div className="pharmacy-details">
                               <div className="title">Pharmacy Details</div>
                               <div>
