@@ -15,11 +15,22 @@ export default function Sidebar({
   setSelectedChat,
   conversations,
   setConversations,
-  getConversations,
 }) {
   const [toggle, setToggle] = useState(false);
   const [active, setActive] = useState(null);
+
   const userId = localStorage.getItem("userId");
+
+  async function getConversations() {
+    await axios
+      .get(`http://localhost:8080/conversations/user/${userId}`)
+      .then((res) => {
+        if (res.data.length === []) {
+          return;
+        }
+        setConversations(res.data);
+      });
+  }
 
   useEffect(() => {
     getConversations();
@@ -57,6 +68,7 @@ export default function Sidebar({
             );
             setConversations([...conversations, response.data]);
             setActive(response.data.conversationId);
+            console.log(localStorage.getItem("conversationId"));
           });
         setPromptDisabled(false);
         setChats([]);

@@ -164,6 +164,23 @@
   display: none;
 }
 
+.pharmacy-details {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pharmacy-details .title {
+  font-weight: 700;
+  font-size: 22px;
+  text-decoration: underline;
+}
+
+.pharmacy-details span {
+  font-weight: 800;
+}
+
 #blinker {
   animation: blinker 1s linear infinite;
 }

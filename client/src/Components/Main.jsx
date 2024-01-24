@@ -2,9 +2,11 @@ import React, { useRef, useState, useEffect } from "react";
 import "../css/main.css";
 import axios from "axios";
 import Sidebar from "./Sidebar";
-import jsPDF from "jspdf";
 import sentences from "../data/responses.json";
 import OpenAI from "openai";
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import { postChat } from "../functions/PostChat";
+import { downloadPdf } from "../functions/pdfGenerator";
 
 export default function Main() {
   const [text, setText] = useState("");
@@ -14,19 +16,24 @@ export default function Main() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [title, setTitle] = useState("New Chat");
   const [conversations, setConversations] = useState([]);
+  const [currentLocation, setCurrentLocation] = useState({ lat: 0, lng: 0 });
+  const [pharmacies, setPharmacies] = useState([]);
+  const [pharmacyDetails, setPharmacyDetails] = useState([]);
 
   const key = process.env.REACT_APP_API_KEY;
   const openAiKey = process.env.REACT_APP_OPENAI_API_KEY;
+  const mapKey = process.env.REACT_APP_MAPS_API;
 
-  const openai = new OpenAI({
-    apiKey: openAiKey,
-    dangerouslyAllowBrowser: true,
-  });
+  // const openai = new OpenAI({
+  //   apiKey: openAiKey,
+  //   dangerouslyAllowBrowser: true,
+  // });
 
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
   const chatContainerRef = useRef(null);
   const userId = localStorage.getItem("userId");
+  const conversationId = localStorage.getItem("conversationId");
 
   useEffect(() => {
     if (chats.length) {
@@ -48,6 +55,46 @@ export default function Main() {
       });
   }
 
+  const updateLocationAndFetchPharmacies = () => {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const newLocation = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+      console.log("New location: " + JSON.stringify(newLocation));
+      setCurrentLocation(newLocation); // Update location
+      fetchPharmacies(newLocation); // Fetch pharmacies with new location
+    });
+  };
+
+  const fetchPharmacies = async (location) => {
+    try {
+      axios
+        .get("http://localhost:8080/pharmacies", {
+          params: {
+            lat: location.lat,
+            lng: location.lng,
+          },
+        })
+        .then((response) => {
+          setPharmacies(response.data.results);
+          console.log(response.data);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+      // const response = await fetch(url);
+      // if (!response.ok) {
+      //   throw new Error("Network response was not ok");
+      // }
+      // const data = await response.json();
+      // return data.results; // 'results' contains the array of nearby places
+    } catch (error) {
+      console.error("Error fetching pharmacies:", error);
+      throw error;
+    }
+  };
+
   // Buttons to expand answer
   const handleOptions = (option, chatIndex) => {
     setChats(
@@ -63,6 +110,11 @@ export default function Main() {
               option === 1
                 ? !chat.response.showMedicine
                 : chat.response.showMedicine,
+            showPharmacy:
+              option === 2
+                ? (updateLocationAndFetchPharmacies(),
+                  !chat.response.showPharmacy)
+                : chat.response.showPharmacy,
           };
         }
         return chat;
@@ -86,13 +138,12 @@ export default function Main() {
         "http://127.0.0.1:5000/predict",
         { data: e.target.value }
       );
-      console.log("Disease prediction: ", predictionResponse.data.disease);
-      console.log("Confidence: ", predictionResponse.data.confidence);
       var confidence = predictionResponse.data.confidence;
       var disease = predictionResponse.data.disease
         .replace(/\s+/g, "-")
         .toLowerCase();
       getConversations();
+
       // Get NHS description of disease
       const nhsResponse = await axios
         .get(`https://api.nhs.uk/conditions/${disease}`, {
@@ -135,7 +186,7 @@ export default function Main() {
           ...chats,
           {
             prompt: JSON.parse(predictionResponse.config.data)["data"],
-            response: errorMessage,
+            response: { response: errorMessage },
           },
         ]);
       } else {
@@ -144,8 +195,6 @@ export default function Main() {
 
         var newResponse =
           diagnosisStarter + "<b>" + predictionResponse.data.disease;
-
-        console.log(newResponse);
 
         var databaseResponse =
           diagnosisStarter +
@@ -160,6 +209,7 @@ export default function Main() {
           response: newResponse,
           showSymptoms: false,
           showMedicine: false,
+          showPharmacy: false,
           diseaseDescription: diseaseDescription,
           diseaseMedicine: diseaseMedicine,
         };
@@ -173,14 +223,18 @@ export default function Main() {
         ]);
 
         // Post chats to database
-        await axios.post(`http://localhost:8080/chats`, {
-          date: Date.now(),
-          recipientMessage: databaseResponse,
-          senderMessage: newChat.prompt,
-          title: predictionResponse.data.disease,
-          userId: localStorage.getItem("userId"),
-          conversationId: localStorage.getItem("conversationId"),
-        });
+        try {
+          await postChat(
+            Date.now(),
+            databaseResponse,
+            newChat.prompt,
+            predictionResponse.data.disease,
+            userId,
+            conversationId
+          );
+        } catch (error) {
+          console.error("Error calling postChat:", error);
+        }
 
         if (localStorage.getItem("conversationTitle") === "New Chat") {
           await axios.put(
@@ -213,51 +267,9 @@ export default function Main() {
     textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
   };
 
-  // Export as PDF
-  const downloadPdf = (chats, name) => {
-    const doc = new jsPDF();
-    // Set background colour
-    const backgroundColor = [26, 54, 26];
-    doc.setFillColor(...backgroundColor);
-    doc.rect(0, 0, doc.internal.pageSize.getWidth(), 30, "F");
-
-    let yPosition = 40; // Initial Y position for first line of text
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 10;
-    const maxWidth = pageWidth - margin * 2; // Maximum width of text per line
-    const textWidth = doc.getTextWidth(text);
-
-    doc.setTextColor("white");
-    doc.setFontSize(20);
-    doc.text("Healio", (pageWidth - 15 - textWidth) / 2, 20);
-
-    chats.forEach((chat) => {
-      doc.setFontSize(14);
-      doc.setTextColor("black");
-      // Add user prompt to PDF
-      let lines = doc.splitTextToSize(`You: ${chat.prompt}`, maxWidth);
-      doc.text(lines, margin, yPosition);
-      yPosition += (lines.length + 0.5) * 7; // Increment Y position for spacing
-
-      // Add Healio response to PDF, ensuring HTML tags are removed
-      let responseText = chat.response.replace(/<[^>]*>?/gm, ""); // Remove HTML tags
-      lines = doc.splitTextToSize(`Healio: ${responseText}`, maxWidth);
-      doc.text(lines, margin, yPosition);
-      yPosition += (lines.length + 0.5) * 7; // Increment Y position for spacing
-
-      // Check if we need to add a new page
-      if (yPosition >= doc.internal.pageSize.getHeight() - 20) {
-        doc.addPage();
-        yPosition = 10; // Reset Y position for the new page
-      }
-    });
-
-    doc.save(name);
-  };
-
   // Trigger the PDF download with the chats data
   const handleExport = () => {
-    downloadPdf(chats, "Healio_Diagnosis.pdf");
+    downloadPdf(chats, "Healio_Diagnosis.pdf", text);
   };
 
   return (
@@ -333,6 +345,9 @@ export default function Main() {
                         <button onClick={() => handleOptions(1, index)}>
                           Medicine
                         </button>
+                        <button onClick={() => handleOptions(2, index)}>
+                          Locate a Pharmacy
+                        </button>
                       </div>
                       {chat.showSymptoms && (
                         <div
@@ -349,6 +364,59 @@ export default function Main() {
                             __html: chat.response.diseaseMedicine,
                           }}
                         />
+                      )}
+                      {chat.showPharmacy && (
+                        <>
+                          <LoadScript googleMapsApiKey={mapKey}>
+                            <GoogleMap
+                              mapContainerStyle={{
+                                width: "100%",
+                                height: "400px",
+                                marginTop: 20,
+                                borderRadius: 15,
+                                boxShadow: "0 5px 5px rgb(0, 0, 0, 1)",
+                              }}
+                              center={currentLocation}
+                              zoom={12}
+                            >
+                              {pharmacies.map((pharmacy) => (
+                                <Marker
+                                  key={pharmacy.id}
+                                  position={pharmacy.geometry.location}
+                                  onClick={() => {
+                                    setPharmacyDetails({
+                                      name: pharmacy.name,
+                                      postcode: pharmacy.vicinity,
+                                      open: pharmacy.opening_hours,
+                                    });
+                                  }}
+                                />
+                              ))}
+                            </GoogleMap>
+                          </LoadScript>
+                          {pharmacyDetails !== "" ? (
+                            <div className="pharmacy-details">
+                              <div className="title">Pharmacy Details</div>
+                              <div>
+                                <span>Name:</span> {pharmacyDetails.name}
+                              </div>
+                              <div>
+                                <span>Address:</span> {pharmacyDetails.postcode}
+                              </div>
+                              <div>
+                                {pharmacyDetails.open ? (
+                                  <div style={{ color: "rgb(0, 251, 0)" }}>
+                                    Open
+                                  </div>
+                                ) : (
+                                  <div style={{ color: "red" }}>Closed</div>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            ""
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
