@@ -89,12 +89,6 @@ export default function Main() {
         .finally(() => {
           setMapLoading(false);
         });
-      // const response = await fetch(url);
-      // if (!response.ok) {
-      //   throw new Error("Network response was not ok");
-      // }
-      // const data = await response.json();
-      // return data.results; // 'results' contains the array of nearby places
     } catch (error) {
       console.error("Error fetching pharmacies:", error);
       throw error;
@@ -116,11 +110,15 @@ export default function Main() {
             showSymptoms:
               option === 0
                 ? !chat.response.showSymptoms
-                : (chat.response.showSymptoms, setPharmacies([])),
+                : (chat.response.showSymptoms,
+                  setPharmacies([]),
+                  setPharmacyDetails([])),
             showMedicine:
               option === 1
                 ? !chat.response.showMedicine
-                : (chat.response.showMedicine, setPharmacies([])),
+                : (chat.response.showMedicine,
+                  setPharmacies([]),
+                  setPharmacyDetails([])),
             showPharmacy:
               option === 2
                 ? (updateLocationAndFetchPharmacies(),
@@ -178,6 +176,17 @@ export default function Main() {
       const randomIndex = (option) =>
         Math.floor(Math.random() * sentences[option].length);
 
+      const newChat = {
+        prompt: "",
+        response: "",
+        showSymptoms: false,
+        showMedicine: false,
+        showPharmacy: false,
+        diseaseDescription: diseaseDescription,
+        diseaseMedicine: diseaseMedicine,
+        options: true,
+      };
+
       if (confidence >= 1) {
         // const completion = await openai.chat.completions.create({
         //   messages: [{ role: "user", content: e.target.value }],
@@ -198,6 +207,7 @@ export default function Main() {
           {
             prompt: JSON.parse(predictionResponse.config.data)["data"],
             response: { response: errorMessage },
+            options: false,
           },
         ]);
       } else {
@@ -215,21 +225,26 @@ export default function Main() {
           diseaseDescription +
           diseaseMedicine;
 
-        const newChat = {
-          prompt: JSON.parse(predictionResponse.config.data)["data"],
-          response: newResponse,
-          showSymptoms: false,
-          showMedicine: false,
-          showPharmacy: false,
-          diseaseDescription: diseaseDescription,
-          diseaseMedicine: diseaseMedicine,
-        };
+        newChat.prompt = JSON.parse(predictionResponse.config.data)["data"];
+        newChat.response = newResponse;
+
+        // const newChat = {
+        //   prompt: JSON.parse(predictionResponse.config.data)["data"],
+        //   response: newResponse,
+        //   showSymptoms: false,
+        //   showMedicine: false,
+        //   showPharmacy: false,
+        //   diseaseDescription: diseaseDescription,
+        //   diseaseMedicine: diseaseMedicine,
+        //   options: confidence < 1,
+        // };
 
         setChats([
           ...chats,
           {
             prompt: JSON.parse(predictionResponse.config.data)["data"],
             response: newChat,
+            options: true,
           },
         ]);
 
@@ -345,27 +360,32 @@ export default function Main() {
                           }}
                         />
                       )}
-                      <div
-                        className={
-                          promptDisabled
-                            ? "buttons-container disabled"
-                            : "buttons-container"
-                        }
-                      >
-                        <button
-                          onClick={() => {
-                            handleOptions(0, index);
-                          }}
+                      {chat.options && (
+                        <div
+                          className={
+                            promptDisabled
+                              ? "buttons-container disabled"
+                              : "buttons-container"
+                          }
                         >
-                          Symptoms
-                        </button>
-                        <button onClick={() => handleOptions(1, index)}>
-                          Medicine
-                        </button>
-                        <button onClick={() => handleOptions(2, index)}>
-                          Locate a Pharmacy
-                        </button>
-                      </div>
+                          <button
+                            onClick={() => {
+                              handleOptions(0, index);
+                            }}
+                          >
+                            Symptoms
+                          </button>
+                          <button onClick={() => handleOptions(1, index)}>
+                            Medicine
+                          </button>
+                          <button onClick={() => handleOptions(2, index)}>
+                            Locate a Pharmacy
+                          </button>
+                          <button onClick={() => handleOptions(3, index)}>
+                            Locate a GP
+                          </button>
+                        </div>
+                      )}
                       {chat.showSymptoms && (
                         <div
                           className="response-content"
@@ -414,7 +434,7 @@ export default function Main() {
                               />
                             ))}
                           </GoogleMap>
-                          {pharmacyDetails.length > 0 ? (
+                          {pharmacyDetails.length !== 0 && (
                             <div className="pharmacy-details">
                               <div className="title">Pharmacy Details</div>
                               <div>
@@ -433,8 +453,6 @@ export default function Main() {
                                 )}
                               </div>
                             </div>
-                          ) : (
-                            ""
                           )}
                         </>
                       )}
@@ -465,11 +483,7 @@ export default function Main() {
           </form>
 
           <div className="options-container">
-            {chats.length === 0 ? (
-              // <i class="fa-solid fa-file-export disabled"></i>
-              <i class="fa-solid fa-download disabled"></i>
-            ) : (
-              // <i class="fa-solid fa-file-export" onClick={handleExport}></i>
+            {promptDisabled && (
               <i class="fa-solid fa-download" onClick={handleExport}></i>
             )}
           </div>
