@@ -4,10 +4,11 @@ import axios from "axios";
 import Sidebar from "./Sidebar";
 import sentences from "../data/responses.json";
 // import OpenAI from "openai";
-import { GoogleMap, Marker } from "@react-google-maps/api";
+import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import { postChat } from "../functions/PostChat";
 import { downloadPdf } from "../functions/pdfGenerator";
 import Logo from "../css/assets/Healio Logo.png";
+import StarRating from "./StarRating";
 
 export default function Main() {
   const [text, setText] = useState("");
@@ -19,10 +20,13 @@ export default function Main() {
   const [conversations, setConversations] = useState([]);
   const [currentLocation, setCurrentLocation] = useState({ lat: 0, lng: 0 });
   const [pharmacies, setPharmacies] = useState([]);
+  const [GPs, setGPs] = useState([]);
   const [pharmacyDetails, setPharmacyDetails] = useState([]);
+  const [GPDetails, setGPDetails] = useState([]);
   const [mapLoading, setMapLoading] = useState(false);
 
   const key = process.env.REACT_APP_API_KEY;
+  const mapKey = process.env.REACT_APP_MAPS_API;
   // const openAiKey = process.env.REACT_APP_OPENAI_API_KEY;
 
   // const openai = new OpenAI({
@@ -45,6 +49,11 @@ export default function Main() {
     }
   }, [chats.length]);
 
+  const { isLoaded } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: mapKey,
+  });
+
   async function getConversations() {
     await axios
       .get(`http://localhost:8080/conversations/user/${userId}`)
@@ -56,7 +65,7 @@ export default function Main() {
       });
   }
 
-  const updateLocationAndFetchPharmacies = () => {
+  const updateLocation = (fetchService) => {
     setMapLoading(true);
     navigator.geolocation.getCurrentPosition((position) => {
       const newLocation = {
@@ -64,7 +73,7 @@ export default function Main() {
         lng: position.coords.longitude,
       };
       setCurrentLocation(newLocation); // Update location
-      fetchPharmacies(newLocation); // Fetch pharmacies with new location
+      fetchService(newLocation); // Fetch pharmacies with new location
     });
   };
 
@@ -94,8 +103,42 @@ export default function Main() {
     }
   };
 
+  const fetchGPs = async (location) => {
+    setMapLoading(true);
+    try {
+      axios
+        .get("http://localhost:8080/gp", {
+          params: {
+            lat: location.lat,
+            lng: location.lng,
+          },
+        })
+        .then((response) => {
+          setGPs(response.data.results);
+          console.log(response.data);
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+          setMapLoading(false);
+        });
+    } catch (error) {
+      console.error("Error fetching GPs:", error);
+      throw error;
+    }
+  };
+
+  const resetMap = () => {
+    setPharmacies([]);
+    setPharmacyDetails([]);
+    setGPs([]);
+    setGPDetails([]);
+  };
+
   // Buttons to expand answer
   const handleOptions = (option, chatIndex) => {
+    resetMap();
     setChats(
       chats.map((chat, index) => {
         if (index === chatIndex) {
@@ -104,20 +147,19 @@ export default function Main() {
             showSymptoms:
               option === 0
                 ? !chat.response.showSymptoms
-                : (chat.response.showSymptoms,
-                  setPharmacies([]),
-                  setPharmacyDetails([])),
+                : chat.response.showSymptoms,
             showMedicine:
               option === 1
                 ? !chat.response.showMedicine
-                : (chat.response.showMedicine,
-                  setPharmacies([]),
-                  setPharmacyDetails([])),
+                : chat.response.showMedicine,
             showPharmacy:
               option === 2
-                ? (updateLocationAndFetchPharmacies(),
-                  !chat.response.showPharmacy)
+                ? (updateLocation(fetchPharmacies), !chat.response.showPharmacy)
                 : chat.response.showPharmacy,
+            showGp:
+              option === 3
+                ? (updateLocation(fetchGPs), !chat.response.showGp)
+                : chat.response.showGp,
           };
         }
         return chat;
@@ -176,6 +218,7 @@ export default function Main() {
         showSymptoms: false,
         showMedicine: false,
         showPharmacy: false,
+        showGp: false,
         diseaseDescription: diseaseDescription,
         diseaseMedicine: diseaseMedicine,
         options: true,
@@ -423,6 +466,7 @@ export default function Main() {
                                     name: pharmacy.name,
                                     postcode: pharmacy.vicinity,
                                     open: pharmacy.opening_hours,
+                                    rating: pharmacy.rating,
                                   });
                                 }}
                               />
@@ -445,6 +489,69 @@ export default function Main() {
                                 ) : (
                                   <div style={{ color: "red" }}>Closed</div>
                                 )}
+                              </div>
+                              <div className="rating-container">
+                                <StarRating rating={pharmacyDetails.rating} />
+                                <div>{pharmacyDetails.rating}</div>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {chat.showGp && (
+                        <>
+                          <GoogleMap
+                            mapContainerStyle={{
+                              width: "100%",
+                              height: "400px",
+                              marginTop: 20,
+                              borderRadius: 15,
+                              boxShadow: "0 5px 5px rgb(0, 0, 0, 1)",
+                            }}
+                            center={currentLocation}
+                            zoom={12}
+                          >
+                            {mapLoading && (
+                              <div className="loading-markers">
+                                Loading GP's...
+                              </div>
+                            )}
+                            {GPs.map((gp) => (
+                              <Marker
+                                key={gp.id}
+                                position={gp.geometry.location}
+                                onClick={() => {
+                                  setGPDetails({
+                                    name: gp.name,
+                                    postcode: gp.vicinity,
+                                    open: gp.opening_hours,
+                                    rating: gp.rating,
+                                  });
+                                }}
+                              />
+                            ))}
+                          </GoogleMap>
+                          {GPDetails.length !== 0 && (
+                            <div className="pharmacy-details">
+                              <div className="title">GP Details</div>
+                              <div>
+                                <span>Name:</span> {GPDetails.name}
+                              </div>
+                              <div>
+                                <span>Address:</span> {GPDetails.postcode}
+                              </div>
+                              <div>
+                                {GPDetails.open ? (
+                                  <div style={{ color: "rgb(0, 251, 0)" }}>
+                                    Open
+                                  </div>
+                                ) : (
+                                  <div style={{ color: "red" }}>Closed</div>
+                                )}
+                              </div>
+                              <div className="rating-container">
+                                <StarRating rating={GPDetails.rating} />
+                                <div>{GPDetails.rating}</div>
                               </div>
                             </div>
                           )}

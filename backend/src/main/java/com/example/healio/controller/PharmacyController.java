@@ -25,7 +25,7 @@ public class PharmacyController {
 
     @GetMapping("/gp")
     public ResponseEntity<String> getGPs(@RequestParam double lat, @RequestParam double lng) {
-        String url = String.format("%s?location=%f,%f&radius=5000&type=gp&key=%s",
+        String url = String.format("%s?location=%f,%f&radius=5000&keyword=gp&key=%s",
                 GOOGLE_MAPS_API_URL, lat, lng, API_KEY);
 
         RestTemplate restTemplate = new RestTemplate();
