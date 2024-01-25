@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -68,7 +68,6 @@ export default function Sidebar({
             );
             setConversations([...conversations, response.data]);
             setActive(response.data.conversationId);
-            console.log(localStorage.getItem("conversationId"));
           });
         setPromptDisabled(false);
         setChats([]);
@@ -87,7 +86,6 @@ export default function Sidebar({
             );
             setConversations([...conversations, response.data]);
             setActive(response.data.conversationId);
-            console.log(localStorage.getItem("conversationId"));
           });
         getConversations();
         setPromptDisabled(false);
@@ -131,18 +129,13 @@ export default function Sidebar({
     }
   };
 
-  async function deleteConversation() {
-    const conversationIdToDelete = localStorage.getItem("conversationId");
-
+  async function deleteConversation(conversationId) {
     await axios
-      .delete(
-        `http://localhost:8080/conversations/delete/${conversationIdToDelete}`
-      )
+      .delete(`http://localhost:8080/conversations/delete/${conversationId}`)
       .then(() => {
         // Filter out the deleted conversation
         const updatedConversations = conversations.filter(
-          (conversation) =>
-            conversation.conversationId !== conversationIdToDelete
+          (conversation) => conversation.conversationId !== conversationId
         );
         setConversations(updatedConversations);
       })
@@ -151,7 +144,7 @@ export default function Sidebar({
       });
 
     axios
-      .delete(`http://localhost:8080/chats/delete/${conversationIdToDelete}`)
+      .delete(`http://localhost:8080/chats/delete/${conversationId}`)
       .then((response) => {
         console.log(response.data);
       })
@@ -206,7 +199,9 @@ export default function Sidebar({
                         conversation.title.slice(1)}
                     </li>
                     <i
-                      onClick={deleteConversation}
+                      onClick={() =>
+                        deleteConversation(conversation.conversationId)
+                      }
                       class={
                         active === conversation.conversationId
                           ? "fa-solid fa-trash"

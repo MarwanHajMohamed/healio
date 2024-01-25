@@ -1,10 +1,10 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import "../css/main.css";
 import axios from "axios";
 import Sidebar from "./Sidebar";
 import sentences from "../data/responses.json";
 // import OpenAI from "openai";
-import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
+import { GoogleMap, Marker } from "@react-google-maps/api";
 import { postChat } from "../functions/PostChat";
 import { downloadPdf } from "../functions/pdfGenerator";
 import Logo from "../css/assets/Healio Logo.png";
@@ -24,7 +24,6 @@ export default function Main() {
 
   const key = process.env.REACT_APP_API_KEY;
   // const openAiKey = process.env.REACT_APP_OPENAI_API_KEY;
-  const mapKey = process.env.REACT_APP_MAPS_API;
 
   // const openai = new OpenAI({
   //   apiKey: openAiKey,
@@ -94,11 +93,6 @@ export default function Main() {
       throw error;
     }
   };
-
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: mapKey,
-  });
 
   // Buttons to expand answer
   const handleOptions = (option, chatIndex) => {
