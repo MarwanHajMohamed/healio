@@ -4,7 +4,12 @@ import axios from "axios";
 import Sidebar from "./Sidebar";
 import sentences from "../data/responses.json";
 // import OpenAI from "openai";
-import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
+import {
+  GoogleMap,
+  InfoWindow,
+  Marker,
+  useJsApiLoader,
+} from "@react-google-maps/api";
 import { postChat } from "../functions/PostChat";
 import { downloadPdf } from "../functions/pdfGenerator";
 import Logo from "../css/assets/Healio Logo.png";
@@ -24,6 +29,7 @@ export default function Main() {
   const [pharmacyDetails, setPharmacyDetails] = useState([]);
   const [GPDetails, setGPDetails] = useState([]);
   const [mapLoading, setMapLoading] = useState(false);
+  const [selectedMarker, setSelectedMarker] = useState(null);
 
   const key = process.env.REACT_APP_API_KEY;
   const mapKey = process.env.REACT_APP_MAPS_API;
@@ -37,6 +43,7 @@ export default function Main() {
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
   const chatContainerRef = useRef(null);
+
   const userId = localStorage.getItem("userId");
   const conversationId = localStorage.getItem("conversationId");
 
@@ -134,6 +141,10 @@ export default function Main() {
     setPharmacyDetails([]);
     setGPs([]);
     setGPDetails([]);
+  };
+
+  const onMarkerClick = (marker) => {
+    setSelectedMarker(marker);
   };
 
   // Buttons to expand answer
@@ -462,6 +473,7 @@ export default function Main() {
                                 key={pharmacy.id}
                                 position={pharmacy.geometry.location}
                                 onClick={() => {
+                                  onMarkerClick(pharmacy);
                                   setPharmacyDetails({
                                     name: pharmacy.name,
                                     postcode: pharmacy.vicinity,
@@ -471,31 +483,50 @@ export default function Main() {
                                 }}
                               />
                             ))}
-                          </GoogleMap>
-                          {pharmacyDetails.length !== 0 && (
-                            <div className="pharmacy-details">
-                              <div className="title">Pharmacy Details</div>
-                              <div>
-                                <span>Name:</span> {pharmacyDetails.name}
-                              </div>
-                              <div>
-                                <span>Address:</span> {pharmacyDetails.postcode}
-                              </div>
-                              <div>
-                                {pharmacyDetails.open ? (
-                                  <div style={{ color: "rgb(0, 251, 0)" }}>
-                                    Open
+                            {selectedMarker && (
+                              <InfoWindow
+                                position={selectedMarker.geometry.location}
+                                onCloseClick={() => setSelectedMarker(null)}
+                              >
+                                <div className="pharmacy-details">
+                                  <div>
+                                    <span>Name:</span> {pharmacyDetails.name}
                                   </div>
-                                ) : (
-                                  <div style={{ color: "red" }}>Closed</div>
-                                )}
-                              </div>
-                              <div className="rating-container">
-                                <StarRating rating={pharmacyDetails.rating} />
-                                <div>{pharmacyDetails.rating}</div>
-                              </div>
-                            </div>
-                          )}
+                                  <div>
+                                    <span>Address:</span>{" "}
+                                    {pharmacyDetails.postcode}
+                                  </div>
+                                  <div>
+                                    {pharmacyDetails.open ? (
+                                      <div
+                                        style={{
+                                          color: "rgb(0, 251, 0)",
+                                          fontWeight: 700,
+                                        }}
+                                      >
+                                        Open
+                                      </div>
+                                    ) : (
+                                      <div
+                                        style={{
+                                          color: "red",
+                                          fontWeight: 700,
+                                        }}
+                                      >
+                                        Closed
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="rating-container">
+                                    <StarRating
+                                      rating={pharmacyDetails.rating}
+                                    />
+                                    <div>{pharmacyDetails.rating}</div>
+                                  </div>
+                                </div>
+                              </InfoWindow>
+                            )}
+                          </GoogleMap>
                         </>
                       )}
                       {chat.showGp && (
@@ -521,6 +552,7 @@ export default function Main() {
                                 key={gp.id}
                                 position={gp.geometry.location}
                                 onClick={() => {
+                                  onMarkerClick(gp);
                                   setGPDetails({
                                     name: gp.name,
                                     postcode: gp.vicinity,
@@ -530,31 +562,47 @@ export default function Main() {
                                 }}
                               />
                             ))}
-                          </GoogleMap>
-                          {GPDetails.length !== 0 && (
-                            <div className="pharmacy-details">
-                              <div className="title">GP Details</div>
-                              <div>
-                                <span>Name:</span> {GPDetails.name}
-                              </div>
-                              <div>
-                                <span>Address:</span> {GPDetails.postcode}
-                              </div>
-                              <div>
-                                {GPDetails.open ? (
-                                  <div style={{ color: "rgb(0, 251, 0)" }}>
-                                    Open
+                            {selectedMarker && (
+                              <InfoWindow
+                                position={selectedMarker.geometry.location}
+                                onCloseClick={() => setSelectedMarker(null)}
+                              >
+                                <div className="pharmacy-details">
+                                  <div>
+                                    <span>Name:</span> {GPDetails.name}
                                   </div>
-                                ) : (
-                                  <div style={{ color: "red" }}>Closed</div>
-                                )}
-                              </div>
-                              <div className="rating-container">
-                                <StarRating rating={GPDetails.rating} />
-                                <div>{GPDetails.rating}</div>
-                              </div>
-                            </div>
-                          )}
+                                  <div>
+                                    <span>Address:</span> {GPDetails.postcode}
+                                  </div>
+                                  <div>
+                                    {GPDetails.open ? (
+                                      <div
+                                        style={{
+                                          color: "rgb(0, 251, 0)",
+                                          fontWeight: 700,
+                                        }}
+                                      >
+                                        Open
+                                      </div>
+                                    ) : (
+                                      <div
+                                        style={{
+                                          color: "red",
+                                          fontWeight: 700,
+                                        }}
+                                      >
+                                        Closed
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="rating-container">
+                                    <StarRating rating={GPDetails.rating} />
+                                    <div>{GPDetails.rating}</div>
+                                  </div>
+                                </div>
+                              </InfoWindow>
+                            )}
+                          </GoogleMap>
                         </>
                       )}
                     </div>

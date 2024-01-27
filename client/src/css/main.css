@@ -189,16 +189,11 @@
 }
 
 .pharmacy-details {
-  margin-top: 20px;
   display: flex;
   flex-direction: column;
   gap: 5px;
-}
-
-.pharmacy-details .title {
-  font-weight: 700;
-  font-size: 22px;
-  text-decoration: underline;
+  color: black;
+  font-weight: 500;
 }
 
 .pharmacy-details span {
