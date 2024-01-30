@@ -3,7 +3,7 @@ import "../css/main.css";
 import axios from "axios";
 import Sidebar from "./Sidebar";
 import sentences from "../data/responses.json";
-// import OpenAI from "openai";
+import OpenAI from "openai";
 import {
   GoogleMap,
   InfoWindow,
@@ -33,12 +33,12 @@ export default function Main() {
 
   const key = process.env.REACT_APP_API_KEY;
   const mapKey = process.env.REACT_APP_MAPS_API;
-  // const openAiKey = process.env.REACT_APP_OPENAI_API_KEY;
+  const openAiKey = process.env.REACT_APP_OPENAI_API_KEY;
 
-  // const openai = new OpenAI({
-  //   apiKey: openAiKey,
-  //   dangerouslyAllowBrowser: true,
-  // });
+  const openai = new OpenAI({
+    apiKey: openAiKey,
+    dangerouslyAllowBrowser: true,
+  });
 
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
@@ -195,6 +195,7 @@ export default function Main() {
         { data: e.target.value }
       );
       var confidence = predictionResponse.data.confidence;
+      console.log("Confidence: ", confidence);
       var disease = predictionResponse.data.disease
         .replace(/\s+/g, "-")
         .toLowerCase();
@@ -235,29 +236,31 @@ export default function Main() {
         options: true,
       };
 
-      if (confidence >= 1) {
-        // const completion = await openai.chat.completions.create({
-        //   messages: [{ role: "user", content: e.target.value }],
-        //   max_tokens: 60,
-        //   model: "gpt-3.5-turbo",
-        // });
-        // console.log(completion.choices[0]);
-        // setChats([
-        //   ...chats,
-        //   {
-        //     prompt: JSON.parse(predictionResponse.config.data)["data"],
-        //     response: completion.choices[0].message.content,
-        //   },
-        // ]);
-        const errorMessage = sentences.error[randomIndex("error")].message;
+      if (confidence === 0.32) {
+        const completion = await openai.chat.completions.create({
+          messages: [
+            { role: "system", content: "You are a helpful assistant." },
+          ],
+          max_tokens: 60,
+          model: "gpt-3.5-turbo",
+        });
+        console.log(completion.choices[0]);
         setChats([
           ...chats,
           {
             prompt: JSON.parse(predictionResponse.config.data)["data"],
-            response: { response: errorMessage },
-            options: false,
+            response: { response: completion.choices[0].message.content },
           },
         ]);
+        // const errorMessage = sentences.error[randomIndex("error")].message;
+        // setChats([
+        //   ...chats,
+        //   {
+        //     prompt: JSON.parse(predictionResponse.config.data)["data"],
+        //     response: { response: errorMessage },
+        //     options: false,
+        //   },
+        // ]);
       } else {
         const diagnosisStarter =
           sentences.diagnosis_starter[randomIndex("diagnosis_starter")].message;
@@ -275,17 +278,6 @@ export default function Main() {
 
         newChat.prompt = JSON.parse(predictionResponse.config.data)["data"];
         newChat.response = newResponse;
-
-        // const newChat = {
-        //   prompt: JSON.parse(predictionResponse.config.data)["data"],
-        //   response: newResponse,
-        //   showSymptoms: false,
-        //   showMedicine: false,
-        //   showPharmacy: false,
-        //   diseaseDescription: diseaseDescription,
-        //   diseaseMedicine: diseaseMedicine,
-        //   options: confidence < 1,
-        // };
 
         setChats([
           ...chats,
