@@ -251,10 +251,35 @@ export default function Main() {
         setChats([
           ...chats,
           {
-            prompt: JSON.parse(predictionResponse.config.data)["data"],
+            prompt: text,
             response: { response: completion.choices[0].message.content },
           },
         ]);
+
+        // Post chats to database
+        try {
+          await postChat(
+            Date.now(),
+            completion.choices[0].message.content,
+            text,
+            text,
+            userId,
+            conversationId
+          );
+        } catch (error) {
+          console.error("Error calling postChat:", error);
+        }
+
+        if (localStorage.getItem("conversationTitle") === "New Chat") {
+          await axios.put(
+            `http://localhost:8080/conversations/${localStorage.getItem(
+              "conversationId"
+            )}`,
+            {
+              title: text,
+            }
+          );
+        }
 
         console.log(completion.choices[0]);
       } else {
