@@ -56,6 +56,7 @@ export default function Main() {
     }
   }, [chats.length]);
 
+  // eslint-disable-next-line
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: mapKey,
@@ -239,12 +240,14 @@ export default function Main() {
       if (confidence === 0.32) {
         const completion = await openai.chat.completions.create({
           messages: [
-            { role: "system", content: "You are a helpful assistant." },
+            {
+              role: "system",
+              content: JSON.parse(predictionResponse.config.data)["data"],
+            },
           ],
           max_tokens: 60,
           model: "gpt-3.5-turbo",
         });
-        console.log(completion.choices[0]);
         setChats([
           ...chats,
           {
@@ -252,15 +255,8 @@ export default function Main() {
             response: { response: completion.choices[0].message.content },
           },
         ]);
-        // const errorMessage = sentences.error[randomIndex("error")].message;
-        // setChats([
-        //   ...chats,
-        //   {
-        //     prompt: JSON.parse(predictionResponse.config.data)["data"],
-        //     response: { response: errorMessage },
-        //     options: false,
-        //   },
-        // ]);
+
+        console.log(completion.choices[0]);
       } else {
         const diagnosisStarter =
           sentences.diagnosis_starter[randomIndex("diagnosis_starter")].message;
