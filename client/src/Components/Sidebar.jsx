@@ -28,6 +28,7 @@ export default function Sidebar({
         if (res.data.length === []) {
           return;
         }
+        console.log(res.data);
         setConversations(res.data);
       });
   }
@@ -73,7 +74,6 @@ export default function Sidebar({
         setPromptDisabled(false);
         setChats([]);
       } else if (lastChat && chats.length !== 0) {
-        getConversations();
         // Store new conversation
         await axios
           .post(`http://localhost:8080/conversations`, {
@@ -122,6 +122,7 @@ export default function Sidebar({
             prompt: chat.senderMessage,
             response: chat.recipientMessage,
           }));
+          console.log(response.data);
           setChats(newChats);
         })
         .catch((error) => {

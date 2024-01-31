@@ -10,11 +10,10 @@ import {
   Marker,
   useJsApiLoader,
 } from "@react-google-maps/api";
-import { postChat } from "../functions/PostChat";
 import { downloadPdf } from "../functions/pdfGenerator";
 import Logo from "../css/assets/Healio Logo.png";
 import StarRating from "./StarRating";
-import { fetchGPs, fetchPharmacies } from "../functions/chatUtils";
+import { fetchGPs, fetchPharmacies, postChat } from "../functions/chatUtils";
 
 export default function Main() {
   const [text, setText] = useState("");
@@ -47,7 +46,6 @@ export default function Main() {
   const chatContainerRef = useRef(null);
 
   const userId = localStorage.getItem("userId");
-  const conversationId = localStorage.getItem("conversationId");
 
   const randomIndex = (option) =>
     Math.floor(Math.random() * sentences[option].length);
@@ -156,6 +154,7 @@ export default function Main() {
       const response = await axios.post("http://127.0.0.1:5000/predict", {
         data: symptoms,
       });
+      console.log(response.data);
       return response.data;
     } catch (error) {
       console.error("Error fetching disease prediction:", error);
@@ -190,7 +189,7 @@ export default function Main() {
     return {
       prompt: text,
       response: diagnosisStarter + "<b>" + disease + "</b>.",
-      alternatives,
+      alternatives: alternatives,
       showSymptoms: false,
       showMedicine: false,
       showPharmacy: false,
@@ -213,21 +212,6 @@ export default function Main() {
     } catch (error) {
       console.error("Error fetching OpenAI completion:", error);
       throw error;
-    }
-  };
-
-  const postChatToDatabase = async (chatData) => {
-    try {
-      await postChat(
-        Date.now(),
-        chatData.response, // Adjust according to your data structure
-        chatData.prompt,
-        chatData.prompt, // Adjust if you need a different value
-        userId,
-        conversationId
-      );
-    } catch (error) {
-      console.error("Error posting chat to database:", error);
     }
   };
 
@@ -269,7 +253,7 @@ export default function Main() {
         const openAiResponse = await fetchOpenAiCompletion(text);
         newChat = { prompt: text, response: { response: openAiResponse } };
         // Post chats to database, update conversation title, etc.
-        await postChatToDatabase(newChat);
+        await postChat(newChat);
         await updateConversationTitle(text);
       } else {
         newChat = await processChatResponse(
@@ -277,7 +261,7 @@ export default function Main() {
           predictionResponse.slice(1)
         );
         // Post chats to database, update conversation title, etc.
-        await postChatToDatabase(newChat);
+        await postChat(newChat);
         await updateConversationTitle(predictionResponse[0].disease);
       }
 
@@ -293,7 +277,6 @@ export default function Main() {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handlePrompts(e);
-      console.log(chats);
     }
   };
 
