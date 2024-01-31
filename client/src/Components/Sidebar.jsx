@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useCallback, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -34,6 +34,7 @@ export default function Sidebar({
 
   useEffect(() => {
     getConversations();
+    // eslint-disable-next-line
   }, []);
 
   let navigate = useNavigate();

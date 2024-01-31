@@ -14,6 +14,7 @@ import { postChat } from "../functions/PostChat";
 import { downloadPdf } from "../functions/pdfGenerator";
 import Logo from "../css/assets/Healio Logo.png";
 import StarRating from "./StarRating";
+import { fetchGPs, fetchPharmacies } from "../functions/chatUtils";
 
 export default function Main() {
   const [text, setText] = useState("");
@@ -30,6 +31,7 @@ export default function Main() {
   const [GPDetails, setGPDetails] = useState([]);
   const [mapLoading, setMapLoading] = useState(false);
   const [selectedMarker, setSelectedMarker] = useState(null);
+  const [alternatives, setAlternatives] = useState([]);
 
   const key = process.env.REACT_APP_API_KEY;
   const mapKey = process.env.REACT_APP_MAPS_API;
@@ -46,6 +48,9 @@ export default function Main() {
 
   const userId = localStorage.getItem("userId");
   const conversationId = localStorage.getItem("conversationId");
+
+  const randomIndex = (option) =>
+    Math.floor(Math.random() * sentences[option].length);
 
   useEffect(() => {
     if (chats.length) {
@@ -73,67 +78,31 @@ export default function Main() {
       });
   }
 
-  const updateLocation = (fetchService) => {
+  const updateLocation = async (fetchService, setService) => {
     setMapLoading(true);
-    navigator.geolocation.getCurrentPosition((position) => {
+
+    const getCurrentPosition = (options = {}) => {
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, options);
+      });
+    };
+
+    try {
+      const position = await getCurrentPosition();
       const newLocation = {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       };
       setCurrentLocation(newLocation); // Update location
-      fetchService(newLocation); // Fetch pharmacies with new location
-    });
-  };
 
-  const fetchPharmacies = async (location) => {
-    setMapLoading(true);
-    try {
-      axios
-        .get("http://localhost:8080/pharmacies", {
-          params: {
-            lat: location.lat,
-            lng: location.lng,
-          },
-        })
-        .then((response) => {
-          setPharmacies(response.data.results);
-          console.log(response.data);
-        })
-        .catch((error) => {
-          console.log(error);
-        })
-        .finally(() => {
-          setMapLoading(false);
-        });
-    } catch (error) {
-      console.error("Error fetching pharmacies:", error);
-      throw error;
-    }
-  };
+      const serviceData = await fetchService(newLocation);
 
-  const fetchGPs = async (location) => {
-    setMapLoading(true);
-    try {
-      axios
-        .get("http://localhost:8080/gp", {
-          params: {
-            lat: location.lat,
-            lng: location.lng,
-          },
-        })
-        .then((response) => {
-          setGPs(response.data.results);
-          console.log(response.data);
-        })
-        .catch((error) => {
-          console.log(error);
-        })
-        .finally(() => {
-          setMapLoading(false);
-        });
+      setService(serviceData); // Update the service state with the fetched data
     } catch (error) {
-      console.error("Error fetching GPs:", error);
-      throw error;
+      console.error("Error in updateLocation:", error);
+      // Handle location fetching error
+    } finally {
+      setMapLoading(false); // Ensure loading state is turned off
     }
   };
 
@@ -150,192 +119,172 @@ export default function Main() {
 
   // Buttons to expand answer
   const handleOptions = (option, chatIndex) => {
-    resetMap();
     setChats(
       chats.map((chat, index) => {
         if (index === chatIndex) {
-          return {
-            ...chat,
-            showSymptoms:
-              option === 0
-                ? !chat.response.showSymptoms
-                : chat.response.showSymptoms,
-            showMedicine:
-              option === 1
-                ? !chat.response.showMedicine
-                : chat.response.showMedicine,
-            showPharmacy:
-              option === 2
-                ? (updateLocation(fetchPharmacies), !chat.response.showPharmacy)
-                : chat.response.showPharmacy,
-            showGp:
-              option === 3
-                ? (updateLocation(fetchGPs), !chat.response.showGp)
-                : chat.response.showGp,
-          };
+          let updatedChat = { ...chat };
+
+          if (option === 2) {
+            resetMap();
+            // When 'Pharmacies' is selected
+            updateLocation(fetchPharmacies, setPharmacies);
+            updatedChat.showPharmacy = !chat.showPharmacy;
+            updatedChat.showGp = false; // Explicitly hide GPs map
+          } else if (option === 3) {
+            resetMap();
+            // When 'GPs' is selected
+            updateLocation(fetchGPs, setGPs);
+            updatedChat.showGp = !chat.showGp;
+            updatedChat.showPharmacy = false; // Explicitly hide Pharmacies map
+          } else {
+            // For other options, just toggle their respective states
+            updatedChat.showSymptoms =
+              option === 0 ? !chat.showSymptoms : chat.showSymptoms;
+            updatedChat.showMedicine =
+              option === 1 ? !chat.showMedicine : chat.showMedicine;
+          }
+
+          return updatedChat;
         }
         return chat;
       })
     );
   };
 
+  const fetchDiseasePrediction = async (symptoms) => {
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/predict", {
+        data: symptoms,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching disease prediction:", error);
+      return null;
+    }
+  };
+
+  // Function to get NHS description of a disease
+  const fetchNhsDescription = async (disease) => {
+    try {
+      const response = await axios.get(
+        `https://api.nhs.uk/conditions/${disease}`,
+        {
+          headers: { "subscription-key": key },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching NHS description:", error);
+      throw error;
+    }
+  };
+
+  // Function to handle chat response
+  const processChatResponse = async (disease, alternatives) => {
+    const diagnosisStarter =
+      sentences.diagnosis_starter[randomIndex("diagnosis_starter")].message;
+    const nhsResponse = await fetchNhsDescription(disease);
+    const diseaseDescription = nhsResponse.hasPart[0].hasPart[0].text;
+    const diseaseMedicine = nhsResponse.hasPart[1].hasPart[0].text;
+
+    return {
+      prompt: text,
+      response: diagnosisStarter + "<b>" + disease + "</b>.",
+      alternatives,
+      showSymptoms: false,
+      showMedicine: false,
+      showPharmacy: false,
+      showGp: false,
+      diseaseDescription,
+      diseaseMedicine,
+      options: true,
+    };
+  };
+
+  // Function to handle OpenAI completion
+  const fetchOpenAiCompletion = async (prompt) => {
+    try {
+      const completion = await openai.chat.completions.create({
+        messages: [{ role: "system", content: prompt }],
+        max_tokens: 60,
+        model: "gpt-3.5-turbo",
+      });
+      return completion.choices[0].message.content;
+    } catch (error) {
+      console.error("Error fetching OpenAI completion:", error);
+      throw error;
+    }
+  };
+
+  const postChatToDatabase = async (chatData) => {
+    try {
+      await postChat(
+        Date.now(),
+        chatData.response, // Adjust according to your data structure
+        chatData.prompt,
+        chatData.prompt, // Adjust if you need a different value
+        userId,
+        conversationId
+      );
+    } catch (error) {
+      console.error("Error posting chat to database:", error);
+    }
+  };
+
+  const updateConversationTitle = async (newTitle) => {
+    if (localStorage.getItem("conversationTitle") === "New Chat") {
+      try {
+        await axios.put(
+          `http://localhost:8080/conversations/${localStorage.getItem(
+            "conversationId"
+          )}`,
+          { title: newTitle }
+        );
+      } catch (error) {
+        console.error("Error updating conversation title:", error);
+      }
+    }
+  };
+
+  // Main function to handle prompts
   const handlePrompts = async (e) => {
     e.preventDefault();
-    if (e.target.value === "") {
-      // Handle empty prompt
-      return;
-    }
+    if (text === "") return;
 
     setText("");
     textareaRef.current.style.height = "33px";
 
     try {
-      // Predict disease using model
-      const predictionResponse = await axios.post(
-        "http://127.0.0.1:5000/predict",
-        { data: e.target.value }
-      );
-      var confidence = predictionResponse.data.confidence;
-      console.log("Confidence: ", confidence);
-      var disease = predictionResponse.data.disease
+      const predictionResponse = await fetchDiseasePrediction(text);
+      console.log("Prediction Response:", predictionResponse);
+      const confidence = predictionResponse[0].confidence;
+      const disease = predictionResponse[0].disease
         .replace(/\s+/g, "-")
         .toLowerCase();
-      getConversations();
 
-      // Get NHS description of disease
-      const nhsResponse = await axios
-        .get(`https://api.nhs.uk/conditions/${disease}`, {
-          headers: {
-            "subscription-key": key,
-          },
-        })
-        .catch(() => {
-          setChats([
-            ...chats,
-            {
-              prompt: JSON.parse(predictionResponse.config.data)["data"],
-              response: "An error occured. Please try again later",
-            },
-          ]);
-        });
+      setAlternatives(predictionResponse.slice(1));
 
-      const diseaseDescription = nhsResponse.data.hasPart[0].hasPart[0].text;
-      const diseaseMedicine = nhsResponse.data.hasPart[1].hasPart[0].text;
-
-      const randomIndex = (option) =>
-        Math.floor(Math.random() * sentences[option].length);
-
-      const newChat = {
-        prompt: "",
-        response: "",
-        showSymptoms: false,
-        showMedicine: false,
-        showPharmacy: false,
-        showGp: false,
-        diseaseDescription: diseaseDescription,
-        diseaseMedicine: diseaseMedicine,
-        options: true,
-      };
-
+      let newChat;
       if (confidence === 0.32) {
-        const completion = await openai.chat.completions.create({
-          messages: [
-            {
-              role: "system",
-              content: JSON.parse(predictionResponse.config.data)["data"],
-            },
-          ],
-          max_tokens: 60,
-          model: "gpt-3.5-turbo",
-        });
-        setChats([
-          ...chats,
-          {
-            prompt: text,
-            response: { response: completion.choices[0].message.content },
-          },
-        ]);
-
-        // Post chats to database
-        try {
-          await postChat(
-            Date.now(),
-            completion.choices[0].message.content,
-            text,
-            text,
-            userId,
-            conversationId
-          );
-        } catch (error) {
-          console.error("Error calling postChat:", error);
-        }
-
-        if (localStorage.getItem("conversationTitle") === "New Chat") {
-          await axios.put(
-            `http://localhost:8080/conversations/${localStorage.getItem(
-              "conversationId"
-            )}`,
-            {
-              title: text,
-            }
-          );
-        }
-
-        console.log(completion.choices[0]);
+        const openAiResponse = await fetchOpenAiCompletion(text);
+        newChat = { prompt: text, response: { response: openAiResponse } };
+        // Post chats to database, update conversation title, etc.
+        await postChatToDatabase(newChat);
+        await updateConversationTitle(text);
       } else {
-        const diagnosisStarter =
-          sentences.diagnosis_starter[randomIndex("diagnosis_starter")].message;
-
-        var newResponse =
-          diagnosisStarter + "<b>" + predictionResponse.data.disease;
-
-        var databaseResponse =
-          diagnosisStarter +
-          "<b>" +
-          predictionResponse.data.disease +
-          "</b>" +
-          diseaseDescription +
-          diseaseMedicine;
-
-        newChat.prompt = JSON.parse(predictionResponse.config.data)["data"];
-        newChat.response = newResponse;
-
-        setChats([
-          ...chats,
-          {
-            prompt: JSON.parse(predictionResponse.config.data)["data"],
-            response: newChat,
-            options: true,
-          },
-        ]);
-
-        // Post chats to database
-        try {
-          await postChat(
-            Date.now(),
-            databaseResponse,
-            newChat.prompt,
-            predictionResponse.data.disease,
-            userId,
-            conversationId
-          );
-        } catch (error) {
-          console.error("Error calling postChat:", error);
-        }
-
-        if (localStorage.getItem("conversationTitle") === "New Chat") {
-          await axios.put(
-            `http://localhost:8080/conversations/${localStorage.getItem(
-              "conversationId"
-            )}`,
-            {
-              title: predictionResponse.data.disease,
-            }
-          );
-        }
+        newChat = await processChatResponse(
+          disease,
+          predictionResponse.slice(1)
+        );
+        // Post chats to database, update conversation title, etc.
+        await postChatToDatabase(newChat);
+        await updateConversationTitle(predictionResponse[0].disease);
       }
+
+      setChats([...chats, newChat]);
     } catch (error) {
       console.error("Error in handlePrompts:", error);
+      // Handle error appropriately
     }
   };
 
@@ -344,6 +293,7 @@ export default function Main() {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handlePrompts(e);
+      console.log(chats);
     }
   };
 
@@ -417,7 +367,7 @@ export default function Main() {
                           className="prompt"
                           id="prompt"
                           dangerouslySetInnerHTML={{
-                            __html: chat.response.response,
+                            __html: chat.response,
                           }}
                         />
                       )}
@@ -451,7 +401,7 @@ export default function Main() {
                         <div
                           className="response-content"
                           dangerouslySetInnerHTML={{
-                            __html: chat.response.diseaseDescription,
+                            __html: chat.diseaseDescription,
                           }}
                         />
                       )}
@@ -459,7 +409,7 @@ export default function Main() {
                         <div
                           className="response-content"
                           dangerouslySetInnerHTML={{
-                            __html: chat.response.diseaseMedicine,
+                            __html: chat.diseaseMedicine,
                           }}
                         />
                       )}
