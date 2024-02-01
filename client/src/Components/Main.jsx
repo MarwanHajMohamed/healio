@@ -3,7 +3,6 @@ import "../css/main.css";
 import axios from "axios";
 import Sidebar from "./Sidebar";
 import sentences from "../data/responses.json";
-import OpenAI from "openai";
 import {
   GoogleMap,
   InfoWindow,
@@ -13,7 +12,13 @@ import {
 import { downloadPdf } from "../functions/pdfGenerator";
 import Logo from "../css/assets/Healio Logo.png";
 import StarRating from "./StarRating";
-import { fetchGPs, fetchPharmacies, postChat } from "../functions/chatUtils";
+import {
+  fetchGPs,
+  fetchPharmacies,
+  postChat,
+  postAIChat,
+  fetchOpenAiCompletion,
+} from "../functions/chatUtils";
 
 export default function Main() {
   const [text, setText] = useState("");
@@ -34,12 +39,6 @@ export default function Main() {
 
   const key = process.env.REACT_APP_API_KEY;
   const mapKey = process.env.REACT_APP_MAPS_API;
-  const openAiKey = process.env.REACT_APP_OPENAI_API_KEY;
-
-  const openai = new OpenAI({
-    apiKey: openAiKey,
-    dangerouslyAllowBrowser: true,
-  });
 
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
@@ -200,21 +199,6 @@ export default function Main() {
     };
   };
 
-  // Function to handle OpenAI completion
-  const fetchOpenAiCompletion = async (prompt) => {
-    try {
-      const completion = await openai.chat.completions.create({
-        messages: [{ role: "system", content: prompt }],
-        max_tokens: 60,
-        model: "gpt-3.5-turbo",
-      });
-      return completion.choices[0].message.content;
-    } catch (error) {
-      console.error("Error fetching OpenAI completion:", error);
-      throw error;
-    }
-  };
-
   const updateConversationTitle = async (newTitle) => {
     if (localStorage.getItem("conversationTitle") === "New Chat") {
       try {
@@ -251,9 +235,9 @@ export default function Main() {
       let newChat;
       if (confidence === 0.32) {
         const openAiResponse = await fetchOpenAiCompletion(text);
-        newChat = { prompt: text, response: { response: openAiResponse } };
+        newChat = { prompt: text, response: openAiResponse };
         // Post chats to database, update conversation title, etc.
-        await postChat(newChat);
+        await postAIChat(newChat);
         await updateConversationTitle(text);
       } else {
         newChat = await processChatResponse(
