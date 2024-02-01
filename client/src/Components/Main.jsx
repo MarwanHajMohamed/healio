@@ -19,6 +19,9 @@ import {
   postAIChat,
   fetchOpenAiCompletion,
 } from "../functions/chatUtils";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Modal from "@mui/material/Modal";
 
 export default function Main() {
   const [text, setText] = useState("");
@@ -35,7 +38,9 @@ export default function Main() {
   const [GPDetails, setGPDetails] = useState([]);
   const [mapLoading, setMapLoading] = useState(false);
   const [selectedMarker, setSelectedMarker] = useState(null);
-  const [alternatives, setAlternatives] = useState([]);
+  const [openModal, setOpenModal] = useState(false);
+  const handleOpen = () => setOpenModal(true);
+  const handleClose = () => setOpenModal(false);
 
   const key = process.env.REACT_APP_API_KEY;
   const mapKey = process.env.REACT_APP_MAPS_API;
@@ -184,10 +189,27 @@ export default function Main() {
     const nhsResponse = await fetchNhsDescription(disease);
     const diseaseDescription = nhsResponse.hasPart[0].hasPart[0].text;
     const diseaseMedicine = nhsResponse.hasPart[1].hasPart[0].text;
+    disease = disease.replace("-", " ");
+    console.log(disease);
+    disease = disease.split(" ");
+
+    for (let i = 0; i < disease.length; i++) {
+      disease[i] = disease[i][0].toUpperCase() + disease[i].substr(1);
+    }
+
+    disease = disease.join(" ");
 
     return {
       prompt: text,
-      response: diagnosisStarter + "<b>" + disease + "</b>.",
+      response:
+        diagnosisStarter +
+        "<b>" +
+        disease +
+        "</b>. However, your symptoms may also align with <b>" +
+        alternatives[0].disease +
+        "</b> and <b>" +
+        alternatives[1].disease +
+        "</b>.",
       alternatives: alternatives,
       showSymptoms: false,
       showMedicine: false,
@@ -229,8 +251,6 @@ export default function Main() {
       const disease = predictionResponse[0].disease
         .replace(/\s+/g, "-")
         .toLowerCase();
-
-      setAlternatives(predictionResponse.slice(1));
 
       let newChat;
       if (confidence === 0.32) {
@@ -276,6 +296,20 @@ export default function Main() {
     downloadPdf(chats, "Healio_Diagnosis.pdf", text);
   };
 
+  const style = {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: 400,
+    bgcolor: "black",
+    boxShadow: 24,
+    outline: "none",
+    p: 4,
+  };
+
+  // I have had a continuous cough, sneezing, fever, sore throat and runny nose
+
   return (
     <>
       <Sidebar
@@ -293,6 +327,24 @@ export default function Main() {
         setConversations={setConversations}
         getConversations={getConversations}
       />
+      <div className="information-icon" onClick={handleOpen}>
+        <i class="fa-solid fa-info"></i>
+      </div>
+      <Modal
+        open={openModal}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            How to use Healio
+          </Typography>
+          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+            Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
+          </Typography>
+        </Box>
+      </Modal>
       <div className="main-container">
         <div className="conversation-container" ref={chatContainerRef}>
           <div className="prompts">
