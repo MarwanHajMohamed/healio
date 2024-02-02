@@ -19,6 +19,62 @@
   background-color: white;
 }
 
+.modal-title {
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 10px;
+  text-decoration: underline;
+}
+
+.carousel-container {
+  text-align: center;
+}
+
+.carousel-container .slider {
+  display: flex;
+  flex-direction: column;
+  height: 680px;
+}
+
+.carousel-container .slider .slide .item {
+  max-width: 500px;
+  border-radius: 15px;
+  border: 3px solid gray;
+  cursor: grab;
+}
+
+.carousel-container .slider .slide .item:active {
+  cursor: grabbing;
+}
+
+.carousel-container .buttons-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.carousel-container .buttons-container .button {
+  border: 0;
+  height: 30px;
+  width: 30px;
+  margin-top: 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.carousel__dot-group {
+  display: flex;
+  gap: 10px;
+}
+
+.carousel__dot {
+  border-radius: 50%;
+  border: 0;
+  width: 10px;
+  height: 10px;
+  margin-top: 20px;
+}
+
 .main-container {
   display: flex;
   flex-direction: column;

@@ -1,17 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import "../css/main.css";
-import axios from "axios";
 import Sidebar from "./Sidebar";
 import sentences from "../data/responses.json";
-import {
-  GoogleMap,
-  InfoWindow,
-  Marker,
-  useJsApiLoader,
-} from "@react-google-maps/api";
-import { downloadPdf } from "../functions/pdfGenerator";
-import Logo from "../css/assets/Healio Logo.png";
-import StarRating from "./StarRating";
 import {
   fetchGPs,
   fetchPharmacies,
@@ -19,9 +9,37 @@ import {
   postAIChat,
   fetchOpenAiCompletion,
 } from "../functions/chatUtils";
+import { downloadPdf } from "../functions/pdfGenerator";
+import Logo from "../css/assets/Healio Logo.png";
+import StarRating from "./StarRating";
+
+import axios from "axios";
+import {
+  GoogleMap,
+  InfoWindow,
+  Marker,
+  useJsApiLoader,
+} from "@react-google-maps/api";
+
+// Mui
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
+
+import {
+  CarouselProvider,
+  Slider,
+  Slide,
+  ButtonBack,
+  ButtonNext,
+  Dot,
+  DotGroup,
+} from "pure-react-carousel";
+import "pure-react-carousel/dist/react-carousel.es.css";
+
+import NewChat from "../css/assets/tutorial/New Chat.mp4";
+import TypingSymptoms from "../css/assets/tutorial/Typing Symptoms.mp4";
+import Diagnosis from "../css/assets/tutorial/Diagnosis.mp4";
 
 export default function Main() {
   const [text, setText] = useState("");
@@ -158,7 +176,6 @@ export default function Main() {
       const response = await axios.post("http://127.0.0.1:5000/predict", {
         data: symptoms,
       });
-      console.log(response.data);
       return response.data;
     } catch (error) {
       console.error("Error fetching disease prediction:", error);
@@ -190,7 +207,6 @@ export default function Main() {
     const diseaseDescription = nhsResponse.hasPart[0].hasPart[0].text;
     const diseaseMedicine = nhsResponse.hasPart[1].hasPart[0].text;
     disease = disease.replace("-", " ");
-    console.log(disease);
     disease = disease.split(" ");
 
     for (let i = 0; i < disease.length; i++) {
@@ -246,7 +262,6 @@ export default function Main() {
 
     try {
       const predictionResponse = await fetchDiseasePrediction(text);
-      console.log("Prediction Response:", predictionResponse);
       const confidence = predictionResponse[0].confidence;
       const disease = predictionResponse[0].disease
         .replace(/\s+/g, "-")
@@ -301,11 +316,12 @@ export default function Main() {
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
-    width: 400,
+    width: 520,
     bgcolor: "black",
     boxShadow: 24,
     outline: "none",
     p: 4,
+    borderRadius: 10,
   };
 
   // I have had a continuous cough, sneezing, fever, sore throat and runny nose
@@ -338,13 +354,40 @@ export default function Main() {
       >
         <Box sx={style}>
           <Typography id="modal-modal-title" variant="h6" component="h2">
-            How to use Healio
-          </Typography>
-          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-            Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
+            <div className="modal-title">How to use Healio</div>
+            <CarouselProvider
+              naturalSlideWidth={100}
+              naturalSlideHeight={124}
+              totalSlides={3}
+              className="carousel-container"
+            >
+              <Slider className="slider">
+                <Slide index={0} className="slide">
+                  <video autoPlay loop muted src={NewChat} className="item" />
+                </Slide>
+                <Slide index={1} className="slide">
+                  <video
+                    src={TypingSymptoms}
+                    autoPlay
+                    loop
+                    muted
+                    className="item"
+                  />
+                </Slide>
+                <Slide index={2} className="slide">
+                  <video src={Diagnosis} autoPlay loop muted className="item" />
+                </Slide>
+              </Slider>
+              <div className="buttons-container">
+                <ButtonBack className="button">&lt;</ButtonBack>
+                <DotGroup />
+                <ButtonNext className="button">&gt;</ButtonNext>
+              </div>
+            </CarouselProvider>
           </Typography>
         </Box>
       </Modal>
+
       <div className="main-container">
         <div className="conversation-container" ref={chatContainerRef}>
           <div className="prompts">
