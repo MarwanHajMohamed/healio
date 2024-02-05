@@ -3,6 +3,7 @@ import OpenAI from "openai";
 
 const userId = localStorage.getItem("userId");
 const openAiKey = process.env.REACT_APP_OPENAI_API_KEY;
+const key = process.env.REACT_APP_API_KEY;
 
 const openai = new OpenAI({
   apiKey: openAiKey,
@@ -31,7 +32,9 @@ export async function postChat(newChat) {
     const response = await axios.post(`http://localhost:8080/chats`, {
       date: Date.now(),
       recipientMessage:
-        newChat.response + newChat.diseaseDescription + newChat.diseaseMedicine,
+        newChat.response +
+        newChat.diseaseDescription +
+        newChat.diseaseTreatment,
       senderMessage: newChat.prompt,
       title: newChat.prompt,
       userId: userId,
@@ -71,6 +74,34 @@ export const fetchGPs = async (location) => {
   } catch (error) {
     console.error("Error fetching pharmacies:", error);
     return []; // Return an empty array in case of an error
+  }
+};
+
+export const fetchDiseasePrediction = async (symptoms) => {
+  try {
+    const response = await axios.post("http://127.0.0.1:5000/predict", {
+      data: symptoms,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching disease prediction:", error);
+    return null;
+  }
+};
+
+// Function to get NHS description of a disease
+export const fetchNhsDescription = async (disease) => {
+  try {
+    const response = await axios.get(
+      `https://api.nhs.uk/conditions/${disease}`,
+      {
+        headers: { "subscription-key": key },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching NHS description:", error);
+    throw error;
   }
 };
 

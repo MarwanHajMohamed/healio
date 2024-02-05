@@ -8,12 +8,17 @@ import {
   postChat,
   postAIChat,
   fetchOpenAiCompletion,
+  fetchDiseasePrediction,
+  fetchNhsDescription,
 } from "../functions/chatUtils";
 import { downloadPdf } from "../functions/pdfGenerator";
 import Logo from "../css/assets/Healio Logo.png";
 import StarRating from "./StarRating";
 
+// Axios
 import axios from "axios";
+
+// Google Maps
 import {
   GoogleMap,
   InfoWindow,
@@ -26,13 +31,13 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
 
+// Carousel
 import {
   CarouselProvider,
   Slider,
   Slide,
   ButtonBack,
   ButtonNext,
-  Dot,
   DotGroup,
 } from "pure-react-carousel";
 import "pure-react-carousel/dist/react-carousel.es.css";
@@ -57,10 +62,10 @@ export default function Main() {
   const [mapLoading, setMapLoading] = useState(false);
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+
   const handleOpen = () => setOpenModal(true);
   const handleClose = () => setOpenModal(false);
 
-  const key = process.env.REACT_APP_API_KEY;
   const mapKey = process.env.REACT_APP_MAPS_API;
 
   const textareaRef = useRef(null);
@@ -160,8 +165,8 @@ export default function Main() {
             // For other options, just toggle their respective states
             updatedChat.showSymptoms =
               option === 0 ? !chat.showSymptoms : chat.showSymptoms;
-            updatedChat.showMedicine =
-              option === 1 ? !chat.showMedicine : chat.showMedicine;
+            updatedChat.showTreatment =
+              option === 1 ? !chat.showTreatment : chat.showTreatment;
           }
 
           return updatedChat;
@@ -171,68 +176,55 @@ export default function Main() {
     );
   };
 
-  const fetchDiseasePrediction = async (symptoms) => {
-    try {
-      const response = await axios.post("http://127.0.0.1:5000/predict", {
-        data: symptoms,
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching disease prediction:", error);
-      return null;
-    }
-  };
-
-  // Function to get NHS description of a disease
-  const fetchNhsDescription = async (disease) => {
-    try {
-      const response = await axios.get(
-        `https://api.nhs.uk/conditions/${disease}`,
-        {
-          headers: { "subscription-key": key },
-        }
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching NHS description:", error);
-      throw error;
-    }
-  };
-
   // Function to handle chat response
   const processChatResponse = async (disease, alternatives) => {
+    // Set the sentence starter
     const diagnosisStarter =
       sentences.diagnosis_starter[randomIndex("diagnosis_starter")].message;
-    const nhsResponse = await fetchNhsDescription(disease);
-    const diseaseDescription = nhsResponse.hasPart[0].hasPart[0].text;
-    const diseaseMedicine = nhsResponse.hasPart[1].hasPart[0].text;
-    disease = disease.replace("-", " ");
-    disease = disease.split(" ");
 
-    for (let i = 0; i < disease.length; i++) {
-      disease[i] = disease[i][0].toUpperCase() + disease[i].substr(1);
+    // Fetch NHS description of disease
+    const nhsResponse = await fetchNhsDescription(disease);
+
+    // Split description to Symptoms and Treatment
+    var diseaseDescription = nhsResponse.hasPart[0].hasPart[0].text;
+    var diseaseTreatment = nhsResponse.hasPart[1].hasPart[0].text;
+
+    if (disease === "allergies") {
+      diseaseDescription = nhsResponse.hasPart[1].hasPart[0].text;
+      diseaseTreatment = nhsResponse.hasPart[5].hasPart[0].text;
     }
 
-    disease = disease.join(" ");
+    // Format disease name to remove any symbols and capitalise letters
+    var formattedDisease = disease.replace("-", " ");
+    formattedDisease = formattedDisease.split(" ");
+    for (let i = 0; i < formattedDisease.length; i++) {
+      formattedDisease[i] =
+        formattedDisease[i][0].toUpperCase() + formattedDisease[i].substr(1);
+    }
+    formattedDisease = formattedDisease.join(" ");
+
+    // Format alternative diseases for research
+    var altDisease1 = alternatives[0].disease.replace(/\s/g, "-");
+    var altDisease2 = alternatives[1].disease.replace(/\s/g, "-");
 
     return {
       prompt: text,
       response:
         diagnosisStarter +
-        "<b>" +
-        disease +
-        "</b>. However, your symptoms may also align with <b>" +
+        `<b><a href='https://www.nhs.uk/conditions/${disease}' target=”_blank” class='disease-link'>` +
+        formattedDisease +
+        ` <i class='fa-solid fa-arrow-up-right-from-square fa-2xs'></i></a></b>. However, your symptoms may also align with <b><a href='https://www.nhs.uk/conditions/${altDisease1}' target=”_blank” class='disease-link'>` +
         alternatives[0].disease +
-        "</b> and <b>" +
+        ` <i class='fa-solid fa-arrow-up-right-from-square fa-2xs'></i></a></b> and <b><a href='https://www.nhs.uk/conditions/${altDisease2}' target=”_blank” class='disease-link'>` +
         alternatives[1].disease +
-        "</b>.",
+        " <i class='fa-solid fa-arrow-up-right-from-square fa-2xs'></i></a></b>.",
       alternatives: alternatives,
       showSymptoms: false,
-      showMedicine: false,
+      showTreatment: false,
       showPharmacy: false,
       showGp: false,
       diseaseDescription,
-      diseaseMedicine,
+      diseaseTreatment,
       options: true,
     };
   };
@@ -449,7 +441,7 @@ export default function Main() {
                             Symptoms
                           </button>
                           <button onClick={() => handleOptions(1, index)}>
-                            Medicine
+                            Treatment
                           </button>
                           <button onClick={() => handleOptions(2, index)}>
                             Locate a Pharmacy
@@ -460,18 +452,20 @@ export default function Main() {
                         </div>
                       )}
                       {chat.showSymptoms && (
-                        <div
-                          className="response-content"
-                          dangerouslySetInnerHTML={{
-                            __html: chat.diseaseDescription,
-                          }}
-                        />
+                        <div>
+                          <div
+                            className="response-content"
+                            dangerouslySetInnerHTML={{
+                              __html: chat.diseaseDescription,
+                            }}
+                          />
+                        </div>
                       )}
-                      {chat.showMedicine && (
+                      {chat.showTreatment && (
                         <div
                           className="response-content"
                           dangerouslySetInnerHTML={{
-                            __html: chat.diseaseMedicine,
+                            __html: chat.diseaseTreatment,
                           }}
                         />
                       )}
@@ -635,6 +629,17 @@ export default function Main() {
                 );
               })
             )}
+            <div
+              className={
+                open ? "nhs-image-container open" : "nhs-image-container"
+              }
+            >
+              <img
+                src={localStorage.getItem("nhsImage")}
+                alt="NHS content supplied by the NHS website"
+                className="nhs-image"
+              />
+            </div>
           </div>
         </div>
         <div

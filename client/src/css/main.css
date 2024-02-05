@@ -109,6 +109,9 @@
 
 .main-container .conversation-container .prompts {
   height: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .main-container .conversation-container .home-screen {
@@ -260,6 +263,11 @@
   border-radius: 5px;
 }
 
+.prompt-container .buttons-container button.active {
+  background-color: white;
+  color: black;
+}
+
 .prompt-container .buttons-container button:hover {
   background-color: white;
   color: black;
@@ -302,6 +310,29 @@
 
 #blinker {
   animation: blinker 1s linear infinite;
+}
+
+.disease-link {
+  transition: 50ms ease-in-out;
+}
+
+.disease-link:hover {
+  color: rgb(0, 255, 136) !important;
+}
+
+.nhs-image-container {
+  background-color: white;
+  display: flex;
+  width: 150px;
+  padding: 10px;
+  border-radius: 5px;
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+}
+
+.nhs-image {
+  width: 100%;
 }
 
 @keyframes blinker {
