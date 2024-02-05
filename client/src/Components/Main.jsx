@@ -43,7 +43,7 @@ import {
 import "pure-react-carousel/dist/react-carousel.es.css";
 
 import NewChat from "../css/assets/tutorial/New Chat.mp4";
-import TypingSymptoms from "../css/assets/tutorial/Typing Symptoms.mp4";
+import EnterSymptoms from "../css/assets/tutorial/Enter Symptoms.mp4";
 import Diagnosis from "../css/assets/tutorial/Diagnosis.mp4";
 
 export default function Main() {
@@ -359,7 +359,7 @@ export default function Main() {
                 </Slide>
                 <Slide index={1} className="slide">
                   <video
-                    src={TypingSymptoms}
+                    src={EnterSymptoms}
                     autoPlay
                     loop
                     muted
