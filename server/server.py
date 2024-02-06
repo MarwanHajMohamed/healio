@@ -1,48 +1,58 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
 from joblib import load
-import string
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
+import pandas as pd
+import numpy as np
+from model_utils import (
+    extract_symptoms,
+    find_closest_symptoms,
+    preprocess_and_lemmatize,
+)
+from flask import Flask, request
+from flask_cors import CORS
 
-app = Flask(__name__, static_folder="./build", static_url_path="/")
+app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
-model = load("./model/healioBot.pkl")
-vectorizer = load("./model/vectorizer.pkl")
+clf = load("model/healioBot.pkl")
 
+data = pd.read_csv("dataset/Model Training.csv")
+data_cleaned = data.drop(columns=["Unnamed: 133"])
+X = data_cleaned.drop(columns=["prognosis"])
+y = data_cleaned["prognosis"]
 
-def clean_text(sent):
-    # remove punctuations
-    sent = sent.translate(str.maketrans("", "", string.punctuation)).strip()
-
-    # remove stopwords
-    stop_words = set(stopwords.words("english"))
-    words = word_tokenize(sent)
-    words = [word for word in words if word not in stop_words]
-
-    return " ".join(words).lower()
-
-
-def make_pred(model, text):
-    text = clean_text(text)
-    tfidf = vectorizer.transform([text])
-    disease = model.predict(tfidf)
-
-    return disease[0]
-
-
-@app.route("/")
-def home():
-    return {"message": "Hello from backend 2"}
+symptoms_in_dataset = list(X.columns)
+dataset_symptoms = preprocess_and_lemmatize(symptoms_in_dataset)
 
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    data = request.get_json()
-    prediction = make_pred(model, data["data"])
-    return prediction
-    # return data
+    json_data = request.json
+
+    text = json_data.get("data", "")
+
+    extracted_symptoms = extract_symptoms(text)
+    matched_symptoms = find_closest_symptoms(" ".join(extracted_symptoms))
+
+    feature_vector = {symptom: 0 for symptom in symptoms_in_dataset}
+    for _, dataset_symptom in matched_symptoms.items():
+        adjusted_symptom = dataset_symptom.replace(" ", "_")
+        if adjusted_symptom in feature_vector:
+            feature_vector[adjusted_symptom] = 1
+
+    input_vector_df = pd.DataFrame([feature_vector])
+
+    # Get predicted probabilities for each class
+    predicted_probabilities = clf.predict_proba(input_vector_df)[0]
+
+    # Get the indices of the top 3 predictions
+    indices = np.argsort(predicted_probabilities)[-3:][::-1]
+
+    # Extract the top 3 predictions and their probabilities
+    top_diseases = [
+        ({"disease": clf.classes_[i], "confidence": predicted_probabilities[i]})
+        for i in indices
+    ]
+
+    return top_diseases
 
 
 if __name__ == "__main__":

@@ -1,0 +1,139 @@
+{
+  "diagnosis_starter": [
+    {
+      "id": 1,
+      "message": "Based on the symptoms you've described, it's possible that you might be experiencing "
+    },
+    {
+      "id": 2,
+      "message": "Your symptoms are commonly associated with conditions like "
+    },
+    {
+      "id": 3,
+      "message": "The symptoms you're experiencing often align with "
+    },
+    {
+      "id": 4,
+      "message": "Considering the symptoms you've mentioned, there's a likelihood of "
+    },
+    {
+      "id": 5,
+      "message": "From what you're describing, it sounds like it might be "
+    },
+    {
+      "id": 6,
+      "message": "Your described symptoms might suggest a condition such as "
+    },
+    {
+      "id": 7,
+      "message": "It appears that your symptoms could be indicative of "
+    },
+    {
+      "id": 8,
+      "message": "Given your symptoms, one possible explanation could be "
+    },
+    {
+      "id": 9,
+      "message": "The symptoms you've outlined align with common signs of "
+    },
+    {
+      "id": 10,
+      "message": "Your symptoms resemble those typically seen in cases of "
+    },
+    {
+      "id": 11,
+      "message": "Based on your description, it's conceivable that you might have "
+    },
+    {
+      "id": 12,
+      "message": "The symptoms you are experiencing are sometimes related to conditions such as "
+    },
+    {
+      "id": 13,
+      "message": "Your current symptoms could potentially be attributed to "
+    }
+  ],
+
+  "error": [
+    {
+      "id": 1,
+      "message": "I'm having a bit of trouble understanding your query. Could you please rephrase your question or provide more details?"
+    },
+    {
+      "id": 2,
+      "message": "I didn't quite catch that. Could you try asking your question in a different way?"
+    },
+    {
+      "id": 3,
+      "message": "I'm here to help, but I need a clearer question. Please try again with more specific details."
+    },
+    {
+      "id": 4,
+      "message": "Your question seems a bit unclear to me. Providing a bit more information would help me give a better answer."
+    },
+    {
+      "id": 5,
+      "message": "I'm unable to process your request as it is currently phrased. Could you provide more context or details?"
+    },
+    {
+      "id": 6,
+      "message": "Oops! I need a clearer question to provide a helpful diagnosis. Please rephrase and try again."
+    },
+    {
+      "id": 7,
+      "message": "It seems I'm having difficulty understanding your question. A little more clarity would help me assist you better."
+    },
+    {
+      "id": 8,
+      "message": "I'm sorry, but your question is a bit confusing to me. Can you try rephrasing it?"
+    },
+    {
+      "id": 9,
+      "message": "I need a bit more information to help you out. Could you clarify your question, please?"
+    },
+    {
+      "id": 10,
+      "message": "I'm not quite sure what you're asking. Could you give me more details or rephrase your question?"
+    },
+    {
+      "id": 11,
+      "message": "I apologize, but I didn't understand your question. Could you be a bit more specific?"
+    },
+    {
+      "id": 12,
+      "message": "Your query is a bit unclear to me. Providing more context or details might help me understand better."
+    },
+    {
+      "id": 13,
+      "message": "I'm struggling to grasp your question. Could you please provide more details or context?"
+    },
+    {
+      "id": 14,
+      "message": "I'm sorry, I didn't understand that. Can you rephrase your question in a different way?"
+    },
+    {
+      "id": 15,
+      "message": "It looks like I'm having trouble understanding your query. More information might help me provide a better response."
+    },
+    {
+      "id": 16,
+      "message": "I'm finding it hard to understand your question as it's currently phrased. Could you please clarify?"
+    },
+    {
+      "id": 17,
+      "message": "Your question is a bit too vague for me. Could you provide more specific details or context?"
+    },
+    {
+      "id": 18,
+      "message": "I'm sorry, but I'm not sure what you mean. Can you rephrase your question or provide additional information?"
+    },
+    {
+      "id": 19,
+      "message": "I'm having difficulty understanding your query. More details would help me respond more accurately."
+    },
+    {
+      "id": 20,
+      "message": "It seems I'm not quite getting what you're asking. Can you provide more information or rephrase your question?"
+    }
+  ]
+}

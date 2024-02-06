@@ -1,0 +1,150 @@
+.sidebar-container .fa-solid.fa-chevron-left,
+.sidebar-container .fa-solid.fa-chevron-right {
+  position: absolute;
+  padding-left: 0px;
+  border-radius: 0 5px 5px 0;
+}
+
+.sidebar-container .chevron-container {
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  height: 50px;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  border-radius: 0px 150px 150px 0px;
+  transition: 100ms ease-in-out;
+  cursor: pointer;
+  background-color: rgb(0, 0, 0, 0.1);
+}
+
+.sidebar-container .chevron-container:hover {
+  background-color: rgb(0, 0, 0, 0.4);
+}
+
+.side-collapse,
+.side-open {
+  position: fixed;
+  top: 0;
+  left: 280px;
+  transition: 300ms ease-in-out;
+  background-color: rgb(0, 0, 0);
+  width: 240px;
+  height: 100vh;
+  padding: 20px;
+  transform: translateX(-100%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sidebar-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  list-style: none;
+  margin-top: 10px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.sidebar-list::-webkit-scrollbar {
+  display: none;
+}
+
+.sidebar-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.heading-container {
+  display: flex;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgb(22, 22, 22);
+}
+
+.heading-container .new-chat {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 15px;
+  transition: 50ms ease-in-out;
+}
+
+.heading-container .title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.heading-container i {
+  font-size: 20px;
+}
+
+.heading-container img {
+  width: 30px;
+}
+
+.heading {
+  font-size: 20px;
+  font-weight: 500;
+  color: white;
+}
+
+.heading-container .new-chat:hover {
+  background-color: rgb(49, 49, 49);
+}
+
+.sidebar-list .side-item {
+  background-color: rgb(0, 0, 0);
+  border-radius: 5px;
+  margin: 0 10px;
+  padding: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.side-item.active {
+  background-color: rgb(49, 49, 49);
+}
+
+.side-item:hover {
+  background-color: rgb(49, 49, 49);
+}
+
+.sidebar-list .side-item i:hover {
+  transition: 50ms ease-in-out;
+  color: rgb(195, 0, 0);
+}
+
+.sidebar-container .bottom-container {
+  margin-bottom: 40px;
+  border-top: 1px solid rgb(22, 22, 22);
+  padding-top: 10px;
+}
+
+.sidebar-container .bottom-container .sign-out {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 15px;
+  transition: 50ms ease-in-out;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.sidebar-container .bottom-container .sign-out:hover {
+  background-color: rgb(49, 49, 49);
+}
+
+.side-collapse {
+  transform: translateX(-200%);
+}
