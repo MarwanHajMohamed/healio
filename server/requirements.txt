@@ -3,3 +3,4 @@ flask_cors
 nltk
 joblib
 gunicorn==21.2.0
+spacy
