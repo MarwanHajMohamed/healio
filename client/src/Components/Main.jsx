@@ -3,8 +3,6 @@ import "../css/main.css";
 import Sidebar from "./Sidebar";
 import sentences from "../data/responses.json";
 import {
-  fetchGPs,
-  fetchPharmacies,
   postChat,
   postAIChat,
   fetchOpenAiCompletion,
@@ -13,18 +11,9 @@ import {
 } from "../functions/chatUtils";
 import { downloadPdf } from "../functions/pdfGenerator";
 import Logo from "../css/assets/Healio Logo.png";
-import StarRating from "./StarRating";
 
 // Axios
 import axios from "axios";
-
-// Google Maps
-import {
-  GoogleMap,
-  InfoWindow,
-  Marker,
-  useJsApiLoader,
-} from "@react-google-maps/api";
 
 // Mui
 import Box from "@mui/material/Box";
@@ -54,19 +43,10 @@ export default function Main() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [title, setTitle] = useState("New Chat");
   const [conversations, setConversations] = useState([]);
-  const [currentLocation, setCurrentLocation] = useState({ lat: 0, lng: 0 });
-  const [pharmacies, setPharmacies] = useState([]);
-  const [GPs, setGPs] = useState([]);
-  const [pharmacyDetails, setPharmacyDetails] = useState([]);
-  const [GPDetails, setGPDetails] = useState([]);
-  const [mapLoading, setMapLoading] = useState(false);
-  const [selectedMarker, setSelectedMarker] = useState(null);
   const [openModal, setOpenModal] = useState(false);
 
   const handleOpen = () => setOpenModal(true);
   const handleClose = () => setOpenModal(false);
-
-  const mapKey = process.env.REACT_APP_MAPS_API;
 
   const textareaRef = useRef(null);
   const ref = useRef(HTMLDivElement);
@@ -86,12 +66,6 @@ export default function Main() {
     }
   }, [chats.length]);
 
-  // eslint-disable-next-line
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: mapKey,
-  });
-
   async function getConversations() {
     await axios
       .get(`http://localhost:8080/conversations/user/${userId}`)
@@ -103,45 +77,6 @@ export default function Main() {
       });
   }
 
-  const updateLocation = async (fetchService, setService) => {
-    setMapLoading(true);
-
-    const getCurrentPosition = (options = {}) => {
-      return new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, options);
-      });
-    };
-
-    try {
-      const position = await getCurrentPosition();
-      const newLocation = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-      };
-      setCurrentLocation(newLocation); // Update location
-
-      const serviceData = await fetchService(newLocation);
-
-      setService(serviceData); // Update the service state with the fetched data
-    } catch (error) {
-      console.error("Error in updateLocation:", error);
-      // Handle location fetching error
-    } finally {
-      setMapLoading(false); // Ensure loading state is turned off
-    }
-  };
-
-  const resetMap = () => {
-    setPharmacies([]);
-    setPharmacyDetails([]);
-    setGPs([]);
-    setGPDetails([]);
-  };
-
-  const onMarkerClick = (marker) => {
-    setSelectedMarker(marker);
-  };
-
   // Buttons to expand answer
   const handleOptions = (option, chatIndex) => {
     setChats(
@@ -149,25 +84,12 @@ export default function Main() {
         if (index === chatIndex) {
           let updatedChat = { ...chat };
 
-          if (option === 2) {
-            resetMap();
-            // When 'Pharmacies' is selected
-            updateLocation(fetchPharmacies, setPharmacies);
-            updatedChat.showPharmacy = !chat.showPharmacy;
-            updatedChat.showGp = false; // Explicitly hide GPs map
-          } else if (option === 3) {
-            resetMap();
-            // When 'GPs' is selected
-            updateLocation(fetchGPs, setGPs);
-            updatedChat.showGp = !chat.showGp;
-            updatedChat.showPharmacy = false; // Explicitly hide Pharmacies map
-          } else {
-            // For other options, just toggle their respective states
-            updatedChat.showSymptoms =
-              option === 0 ? !chat.showSymptoms : chat.showSymptoms;
-            updatedChat.showTreatment =
-              option === 1 ? !chat.showTreatment : chat.showTreatment;
-          }
+          updatedChat.showDescription =
+            option === 0 ? !chat.showDescription : chat.showDescription;
+          updatedChat.showSymptoms =
+            option === 1 ? !chat.showSymptoms : chat.showSymptoms;
+          updatedChat.showTreatment =
+            option === 2 ? !chat.showTreatment : chat.showTreatment;
 
           return updatedChat;
         }
@@ -186,11 +108,16 @@ export default function Main() {
     const nhsResponse = await fetchNhsDescription(disease);
 
     // Split description to Symptoms and Treatment
-    var diseaseDescription = nhsResponse.hasPart[0].hasPart[0].text;
+    var diseaseSymptoms = nhsResponse.hasPart[0].hasPart[0].text;
     var diseaseTreatment = nhsResponse.hasPart[1].hasPart[0].text;
 
+    const getDiseaseDescription = await fetchOpenAiCompletion(
+      `What is a ${disease}? Summarise it in one short paragraph.`
+    );
+    var diseaseDescription = getDiseaseDescription;
+
     if (disease === "allergies") {
-      diseaseDescription = nhsResponse.hasPart[1].hasPart[0].text;
+      diseaseSymptoms = nhsResponse.hasPart[1].hasPart[0].text;
       diseaseTreatment = nhsResponse.hasPart[5].hasPart[0].text;
     }
 
@@ -213,16 +140,16 @@ export default function Main() {
         diagnosisStarter +
         `<b><a href='https://www.nhs.uk/conditions/${disease}' target=”_blank” class='disease-link'>` +
         formattedDisease +
-        ` <i class='fa-solid fa-arrow-up-right-from-square fa-2xs'></i></a></b>. However, your symptoms may also align with <b><a href='https://www.nhs.uk/conditions/${altDisease1}' target=”_blank” class='disease-link'>` +
+        `</a></b>. However, your symptoms may also align with <b><a href='https://www.nhs.uk/conditions/${altDisease1}' target=”_blank” class='disease-link'>` +
         alternatives[0].disease +
-        ` <i class='fa-solid fa-arrow-up-right-from-square fa-2xs'></i></a></b> and <b><a href='https://www.nhs.uk/conditions/${altDisease2}' target=”_blank” class='disease-link'>` +
+        `</a></b> and <b><a href='https://www.nhs.uk/conditions/${altDisease2}' target=”_blank” class='disease-link'>` +
         alternatives[1].disease +
-        " <i class='fa-solid fa-arrow-up-right-from-square fa-2xs'></i></a></b>.",
+        "</a></b>.<br><br>",
       alternatives: alternatives,
+      showDescription: false,
       showSymptoms: false,
       showTreatment: false,
-      showPharmacy: false,
-      showGp: false,
+      diseaseSymptoms,
       diseaseDescription,
       diseaseTreatment,
       options: true,
@@ -438,17 +365,28 @@ export default function Main() {
                               handleOptions(0, index);
                             }}
                           >
+                            Description
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleOptions(1, index);
+                            }}
+                          >
                             Symptoms
                           </button>
-                          <button onClick={() => handleOptions(1, index)}>
+                          <button onClick={() => handleOptions(2, index)}>
                             Treatment
                           </button>
-                          <button onClick={() => handleOptions(2, index)}>
-                            Locate a Pharmacy
-                          </button>
-                          <button onClick={() => handleOptions(3, index)}>
-                            Locate a GP
-                          </button>
+                        </div>
+                      )}
+                      {chat.showDescription && (
+                        <div>
+                          <div
+                            className="response-content"
+                            dangerouslySetInnerHTML={{
+                              __html: chat.diseaseDescription,
+                            }}
+                          />
                         </div>
                       )}
                       {chat.showSymptoms && (
@@ -456,7 +394,7 @@ export default function Main() {
                           <div
                             className="response-content"
                             dangerouslySetInnerHTML={{
-                              __html: chat.diseaseDescription,
+                              __html: chat.diseaseSymptoms,
                             }}
                           />
                         </div>
@@ -468,161 +406,6 @@ export default function Main() {
                             __html: chat.diseaseTreatment,
                           }}
                         />
-                      )}
-                      {chat.showPharmacy && (
-                        <>
-                          <GoogleMap
-                            mapContainerStyle={{
-                              width: "100%",
-                              height: "400px",
-                              marginTop: 20,
-                              borderRadius: 15,
-                              boxShadow: "0 5px 5px rgb(0, 0, 0, 1)",
-                            }}
-                            center={currentLocation}
-                            zoom={12}
-                          >
-                            {mapLoading && (
-                              <div className="loading-markers">
-                                Loading pharmacies...
-                              </div>
-                            )}
-                            {pharmacies.map((pharmacy) => (
-                              <Marker
-                                key={pharmacy.id}
-                                position={pharmacy.geometry.location}
-                                onClick={() => {
-                                  onMarkerClick(pharmacy);
-                                  setPharmacyDetails({
-                                    name: pharmacy.name,
-                                    postcode: pharmacy.vicinity,
-                                    open: pharmacy.opening_hours,
-                                    rating: pharmacy.rating,
-                                  });
-                                }}
-                              />
-                            ))}
-                            {selectedMarker && (
-                              <InfoWindow
-                                position={selectedMarker.geometry.location}
-                                onCloseClick={() => setSelectedMarker(null)}
-                              >
-                                <div className="pharmacy-details">
-                                  <div>
-                                    <span>Name:</span> {pharmacyDetails.name}
-                                  </div>
-                                  <div>
-                                    <span>Address:</span>{" "}
-                                    {pharmacyDetails.postcode}
-                                  </div>
-                                  <div>
-                                    {pharmacyDetails.open ? (
-                                      <div
-                                        style={{
-                                          color: "rgb(0, 251, 0)",
-                                          fontWeight: 700,
-                                        }}
-                                      >
-                                        Open
-                                      </div>
-                                    ) : (
-                                      <div
-                                        style={{
-                                          color: "red",
-                                          fontWeight: 700,
-                                        }}
-                                      >
-                                        Closed
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="rating-container">
-                                    <StarRating
-                                      rating={pharmacyDetails.rating}
-                                    />
-                                    <div>{pharmacyDetails.rating}</div>
-                                  </div>
-                                </div>
-                              </InfoWindow>
-                            )}
-                          </GoogleMap>
-                        </>
-                      )}
-                      {chat.showGp && (
-                        <>
-                          <GoogleMap
-                            mapContainerStyle={{
-                              width: "100%",
-                              height: "400px",
-                              marginTop: 20,
-                              borderRadius: 15,
-                              boxShadow: "0 5px 5px rgb(0, 0, 0, 1)",
-                            }}
-                            center={currentLocation}
-                            zoom={12}
-                          >
-                            {mapLoading && (
-                              <div className="loading-markers">
-                                Loading GP's...
-                              </div>
-                            )}
-                            {GPs.map((gp) => (
-                              <Marker
-                                key={gp.id}
-                                position={gp.geometry.location}
-                                onClick={() => {
-                                  onMarkerClick(gp);
-                                  setGPDetails({
-                                    name: gp.name,
-                                    postcode: gp.vicinity,
-                                    open: gp.opening_hours,
-                                    rating: gp.rating,
-                                  });
-                                }}
-                              />
-                            ))}
-                            {selectedMarker && (
-                              <InfoWindow
-                                position={selectedMarker.geometry.location}
-                                onCloseClick={() => setSelectedMarker(null)}
-                              >
-                                <div className="pharmacy-details">
-                                  <div>
-                                    <span>Name:</span> {GPDetails.name}
-                                  </div>
-                                  <div>
-                                    <span>Address:</span> {GPDetails.postcode}
-                                  </div>
-                                  <div>
-                                    {GPDetails.open ? (
-                                      <div
-                                        style={{
-                                          color: "rgb(0, 251, 0)",
-                                          fontWeight: 700,
-                                        }}
-                                      >
-                                        Open
-                                      </div>
-                                    ) : (
-                                      <div
-                                        style={{
-                                          color: "red",
-                                          fontWeight: 700,
-                                        }}
-                                      >
-                                        Closed
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="rating-container">
-                                    <StarRating rating={GPDetails.rating} />
-                                    <div>{GPDetails.rating}</div>
-                                  </div>
-                                </div>
-                              </InfoWindow>
-                            )}
-                          </GoogleMap>
-                        </>
                       )}
                     </div>
                   </div>
