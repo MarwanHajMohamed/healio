@@ -8,6 +8,7 @@ import {
   fetchOpenAiCompletion,
   fetchDiseasePrediction,
   fetchNhsDescription,
+  processAlternativeDisease,
 } from "../functions/chatUtils";
 import { downloadPdf } from "../functions/pdfGenerator";
 import Logo from "../css/assets/Healio Logo.png";
@@ -98,6 +99,23 @@ export default function Main() {
     );
   };
 
+  const handleAlternativeDisease = async (disease) => {
+    let newChat;
+    newChat = await processAlternativeDisease(disease);
+    // Post chats to database, update conversation title, etc.
+    await postChat(newChat);
+    await updateConversationTitle(disease);
+
+    setChats([...chats, newChat]);
+  };
+
+  document.querySelectorAll(".disease-link").forEach((element) => {
+    element.addEventListener("click", function () {
+      const diseaseName = this.getAttribute("data-disease");
+      handleAlternativeDisease(diseaseName);
+    });
+  });
+
   // Function to handle chat response
   const processChatResponse = async (disease, alternatives) => {
     // Set the sentence starter
@@ -138,13 +156,12 @@ export default function Main() {
       prompt: text,
       response:
         diagnosisStarter +
-        `<b><a href='https://www.nhs.uk/conditions/${disease}' target=”_blank” class='disease-link'>` +
         formattedDisease +
-        `</a></b>. However, your symptoms may also align with <b><a href='https://www.nhs.uk/conditions/${altDisease1}' target=”_blank” class='disease-link'>` +
+        `</a></b>. However, your symptoms may also align with <b><span data-disease='${altDisease1}' class='disease-link'>` +
         alternatives[0].disease +
-        `</a></b> and <b><a href='https://www.nhs.uk/conditions/${altDisease2}' target=”_blank” class='disease-link'>` +
+        `</span></b> and <b><span data-disease='${altDisease2}' class='disease-link'>` +
         alternatives[1].disease +
-        "</a></b>.<br><br>",
+        "</span></b>.<br><br>",
       alternatives: alternatives,
       showDescription: false,
       showSymptoms: false,
@@ -178,6 +195,13 @@ export default function Main() {
 
     setText("");
     textareaRef.current.style.height = "33px";
+    setChats([
+      ...chats,
+      {
+        prompt: text,
+        response: "<i class='fa-solid fa-circle-notch fa-spin'></i>",
+      },
+    ]);
 
     try {
       const predictionResponse = await fetchDiseasePrediction(text);

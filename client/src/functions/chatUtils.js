@@ -119,3 +119,42 @@ export const fetchOpenAiCompletion = async (prompt) => {
     throw error;
   }
 };
+
+// Get alternative disease description, symptoms and treatment
+export const processAlternativeDisease = async (disease) => {
+  const nhsResponse = await fetchNhsDescription(disease);
+
+  var diseaseSymptoms = nhsResponse.hasPart[0].hasPart[0].text;
+  var diseaseTreatment = nhsResponse.hasPart[1].hasPart[0].text;
+
+  const getDiseaseDescription = await fetchOpenAiCompletion(
+    `What is a ${disease}? Summarise it in one short paragraph.`
+  );
+  var diseaseDescription = getDiseaseDescription;
+
+  if (disease === "allergies") {
+    diseaseSymptoms = nhsResponse.hasPart[1].hasPart[0].text;
+    diseaseTreatment = nhsResponse.hasPart[5].hasPart[0].text;
+  }
+
+  //   Format disease name to remove any symbols and capitalise letters
+  var formattedDisease = disease.replace("-", " ");
+  formattedDisease = formattedDisease.split(" ");
+  for (let i = 0; i < formattedDisease.length; i++) {
+    formattedDisease[i] =
+      formattedDisease[i][0].toUpperCase() + formattedDisease[i].substr(1);
+  }
+  formattedDisease = formattedDisease.join(" ");
+
+  return {
+    prompt: disease,
+    response: "",
+    showDescription: false,
+    showSymptoms: false,
+    showTreatment: false,
+    diseaseSymptoms,
+    diseaseDescription,
+    diseaseTreatment,
+    options: true,
+  };
+};
