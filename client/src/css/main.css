@@ -249,7 +249,7 @@
   display: flex;
   gap: 30px;
   justify-content: center;
-  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .prompt-container .buttons-container button {
@@ -310,14 +310,6 @@
 
 #blinker {
   animation: blinker 1s linear infinite;
-}
-
-.disease-link {
-  transition: 50ms ease-in-out;
-}
-
-.disease-link:hover {
-  color: rgb(0, 255, 136) !important;
 }
 
 .nhs-image-container {

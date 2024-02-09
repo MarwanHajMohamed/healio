@@ -127,21 +127,42 @@
 
 .sidebar-container .bottom-container {
   margin-bottom: 40px;
-  border-top: 1px solid rgb(22, 22, 22);
-  padding-top: 10px;
 }
 
 .sidebar-container .bottom-container .sign-out {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-radius: 15px;
+  border-radius: 5px;
   transition: 50ms ease-in-out;
   padding: 10px;
   cursor: pointer;
+  border-top: 1px solid rgb(22, 22, 22);
 }
 
 .sidebar-container .bottom-container .sign-out:hover {
+  background-color: rgb(49, 49, 49);
+}
+
+.sidebar-container .bottom-container .locate-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.sidebar-container .bottom-container .locate-container .locate {
+  padding: 10px 10.5px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: 50ms ease-in-out;
+}
+
+.sidebar-container .bottom-container .locate-container .locate:first-child {
+  border-right: 1px solid rgb(255, 255, 255, 0.1);
+}
+
+.sidebar-container .bottom-container .locate-container .locate:hover {
   background-color: rgb(49, 49, 49);
 }
 

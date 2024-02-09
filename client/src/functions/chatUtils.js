@@ -110,7 +110,7 @@ export const fetchOpenAiCompletion = async (prompt) => {
   try {
     const completion = await openai.chat.completions.create({
       messages: [{ role: "system", content: prompt }],
-      max_tokens: 60,
+      //   max_tokens: 10,
       model: "gpt-3.5-turbo",
     });
     return completion.choices[0].message.content;
