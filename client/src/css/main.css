@@ -111,7 +111,6 @@
   height: inherit;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
 .main-container .conversation-container .home-screen {
@@ -248,8 +247,7 @@
 .prompt-container .buttons-container {
   display: flex;
   gap: 30px;
-  justify-content: center;
-  margin-bottom: 20px;
+  margin: 20px 0;
 }
 
 .prompt-container .buttons-container button {
@@ -325,6 +323,10 @@
 
 .nhs-image {
   width: 100%;
+}
+
+.disease-link {
+  cursor: pointer;
 }
 
 @keyframes blinker {
