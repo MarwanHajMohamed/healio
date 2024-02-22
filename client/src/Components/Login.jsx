@@ -4,7 +4,6 @@ import doctor2 from "../css/assets/doctor2.png";
 import "../css/login.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { fetchNhsDescription } from "../functions/chatUtils";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -35,10 +34,6 @@ export default function Login() {
           localStorage.setItem("token", res.data.jwt);
           localStorage.setItem("user", email);
           localStorage.setItem("userId", res.data.userId);
-
-          const nhsResponse = await fetchNhsDescription("allergies");
-          const nhsImage = nhsResponse.author.logo;
-          localStorage.setItem("nhsImage", nhsImage);
 
           navigate("/chat");
         } else {

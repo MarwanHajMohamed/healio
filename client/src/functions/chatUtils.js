@@ -121,7 +121,7 @@ export const fetchOpenAiCompletion = async (prompt) => {
 };
 
 // Get alternative disease description, symptoms and treatment
-export const processAlternativeDisease = async (disease) => {
+export const processAlternativeDisease = async (disease, chats, setChats) => {
   const nhsResponse = await fetchNhsDescription(disease);
 
   var diseaseSymptoms = nhsResponse.hasPart[0].hasPart[0].text;
@@ -146,9 +146,10 @@ export const processAlternativeDisease = async (disease) => {
   }
   formattedDisease = formattedDisease.join(" ");
 
-  return {
-    prompt: disease,
+  const newChat = {
+    prompt: formatDisease(disease),
     response: "",
+    alternatives: [],
     showDescription: false,
     showSymptoms: false,
     showTreatment: false,
@@ -157,4 +158,14 @@ export const processAlternativeDisease = async (disease) => {
     diseaseTreatment,
     options: true,
   };
+
+  return newChat;
 };
+
+export function formatDisease(str) {
+  str = str.replace(/-/g, " ");
+  return str
+    .split(" ") // Split the string into an array of words
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize the first letter of each word
+    .join(" "); // Join the array back into a string
+}

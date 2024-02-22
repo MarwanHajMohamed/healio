@@ -9,9 +9,11 @@ import {
   fetchDiseasePrediction,
   fetchNhsDescription,
   processAlternativeDisease,
+  formatDisease,
 } from "../functions/chatUtils";
 import { downloadPdf } from "../functions/pdfGenerator";
 import Logo from "../css/assets/Healio Logo.png";
+import NHS from "../css/assets/NHS.png";
 
 // Axios
 import axios from "axios";
@@ -99,22 +101,43 @@ export default function Main() {
     );
   };
 
-  const handleAlternativeDisease = async (disease) => {
-    let newChat;
+  async function handleAlternativeDisease(disease) {
+    var newChat;
+
+    setChats((currentChats) => [
+      ...currentChats,
+      {
+        prompt: formatDisease(disease),
+        response: <i class="fa-solid fa-circle-notch fa-spin"></i>,
+        isLoading: true, // Mark this chat entry as loading
+      },
+    ]);
+
     newChat = await processAlternativeDisease(disease);
     // Post chats to database, update conversation title, etc.
     await postChat(newChat);
     await updateConversationTitle(disease);
 
-    setChats([...chats, newChat]);
-  };
+    setChats((currentChats) => {
+      // Find the index of the last chat entry that is loading
+      const loadingChatIndex = currentChats.findIndex((chat) => chat.isLoading);
 
-  document.querySelectorAll(".disease-link").forEach((element) => {
-    element.addEventListener("click", function () {
-      const diseaseName = this.getAttribute("data-disease");
-      handleAlternativeDisease(diseaseName);
+      if (loadingChatIndex !== -1) {
+        // Replace the loading entry with the new chat
+        return [
+          ...currentChats.slice(0, loadingChatIndex),
+          {
+            ...newChat, // Assuming newChat has the structure we need
+            isLoading: false, // Remove the loading marker
+          },
+          ...currentChats.slice(loadingChatIndex + 1),
+        ];
+      }
+
+      return currentChats; // In case no loading chat is found, return the array unchanged
     });
-  });
+    console.log(chats);
+  }
 
   // Function to handle chat response
   const processChatResponse = async (disease, alternatives) => {
@@ -139,29 +162,37 @@ export default function Main() {
       diseaseTreatment = nhsResponse.hasPart[5].hasPart[0].text;
     }
 
-    // Format disease name to remove any symbols and capitalise letters
-    var formattedDisease = disease.replace("-", " ");
-    formattedDisease = formattedDisease.split(" ");
-    for (let i = 0; i < formattedDisease.length; i++) {
-      formattedDisease[i] =
-        formattedDisease[i][0].toUpperCase() + formattedDisease[i].substr(1);
-    }
-    formattedDisease = formattedDisease.join(" ");
-
     // Format alternative diseases for research
     var altDisease1 = alternatives[0].disease.replace(/\s/g, "-");
     var altDisease2 = alternatives[1].disease.replace(/\s/g, "-");
 
     return {
       prompt: text,
-      response:
-        diagnosisStarter +
-        formattedDisease +
-        `</a></b>. However, your symptoms may also align with <b><span data-disease='${altDisease1}' class='disease-link'>` +
-        alternatives[0].disease +
-        `</span></b> and <b><span data-disease='${altDisease2}' class='disease-link'>` +
-        alternatives[1].disease +
-        "</span></b>.<br><br>",
+      response: (
+        <div>
+          {diagnosisStarter} <b>{formatDisease(disease)}</b>. However, your
+          symptoms may also align with{" "}
+          <b>
+            <span
+              style={{ cursor: "pointer" }}
+              onClick={() => {
+                handleAlternativeDisease(altDisease1);
+              }}
+            >
+              {formatDisease(altDisease1)}
+            </span>
+          </b>{" "}
+          or{" "}
+          <b>
+            <span
+              style={{ cursor: "pointer" }}
+              onClick={() => handleAlternativeDisease(altDisease2)}
+            >
+              {formatDisease(altDisease2)}
+            </span>
+          </b>
+        </div>
+      ),
       alternatives: alternatives,
       showDescription: false,
       showSymptoms: false,
@@ -199,7 +230,7 @@ export default function Main() {
       ...chats,
       {
         prompt: text,
-        response: "<i class='fa-solid fa-circle-notch fa-spin'></i>",
+        response: <i class="fa-solid fa-circle-notch fa-spin"></i>,
       },
     ]);
 
@@ -368,13 +399,24 @@ export default function Main() {
                           }}
                         />
                       ) : (
-                        <div
-                          className="prompt"
-                          id="prompt"
-                          dangerouslySetInnerHTML={{
-                            __html: chat.response,
-                          }}
-                        />
+                        <div>
+                          {/* <div
+                            className="prompt"
+                            id="prompt"
+                            dangerouslySetInnerHTML={{
+                              __html: chat.response,
+                            }}
+                          /> */}
+                          {/* <div>However, your symptoms may also align with</div>
+                          <button
+                            onClick={() => {
+                              handleAlternativeDisease(altDisease1);
+                            }}
+                          >
+                            {altDisease1}
+                          </button> */}
+                          {chat.response}
+                        </div>
                       )}
                       {chat.options && (
                         <div
@@ -442,7 +484,7 @@ export default function Main() {
               }
             >
               <img
-                src={localStorage.getItem("nhsImage")}
+                src={NHS}
                 alt="NHS content supplied by the NHS website"
                 className="nhs-image"
               />
